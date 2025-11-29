@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Add Section{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Add Section</h2>
+  <a href="{% url 'academic_setup' %}?tab=section" class="btn btn-secondary mb-3">Go Back</a>
+
+  <form method="post">
+    {% csrf_token %}
+    <label>Grade</label>
+    <select name="grade" class="form-select mb-2">
+      <option>Grade 7</option>
+      <option>Grade 8</option>
+      <option>Grade 9</option>
+      <option>Grade 10</option>
+    </select>
+
+    <label>Section Name</label>
+    <input name="name" class="form-control mb-2" required>
+
+    <label>Adviser</label>
+    <input name="adviser" class="form-control mb-2">
+
+    <label>No. of Students</label>
+    <input type="number" name="number_of_students" class="form-control mb-2">
+
+    <label>Status</label>
+    <select name="status" class="form-select mb-3">
+      <option>Active</option>
+      <option>Inactive</option>
+    </select>
+
+    <button class="btn btn-success">Save</button>
+  </form>
+</div>
+{% endblock %}

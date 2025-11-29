@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Edit School Year{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit School Year</h2>
+  <a href="{% url 'academic_setup' %}?tab=school_year" class="btn btn-secondary mb-3">Go Back</a>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <label>Year</label>
+    <select name="year" class="form-select mb-2">
+      {% for y in years %}
+        <option value="{{ y }}" {% if obj.year == y %}selected{% endif %}>{{ y }} - {{ y|add:1 }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Status</label>
+    <select name="status" class="form-select mb-3">
+      <option value="Active" {% if obj.status == 'Active' %}selected{% endif %}>Active</option>
+      <option value="Inactive" {% if obj.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+
+    <button class="btn btn-success">Update</button>
+  </form>
+</div>
+{% endblock %}

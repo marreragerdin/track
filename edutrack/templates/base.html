@@ -1,0 +1,60 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}EduTrack{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #1f2937;
+            color: white;
+            padding: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            margin-bottom: 5px;
+        }
+        .sidebar a:hover {
+            background-color: #374151;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>EduTrack</h2>
+    <p>Hello, {{ user.username }}</p>
+    <hr>
+    <a href="{% url 'manage_user' %}">Users</a>
+    <a href="{% url 'academic_setup' %}">Academic Setup</a>
+    <a href="{% url 'student_record' %}">Student Record</a>
+    <a href="{% url 'assign_subject' %}">Assign Subject</a>
+    <a href="{% url 'score' %}">Scores</a>
+    <a href="#">Reports</a>
+</div>
+
+
+<div class="content">
+    {% block content %}
+    <!-- Page-specific content goes here -->
+    {% endblock %}
+</div>
+
+</body>
+</html>

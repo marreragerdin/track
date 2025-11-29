@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<div class="row mt-3">
+    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
+        <h5>Total Students</h5>
+        <p>{{ total_students }}</p>
+    </div>
+    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
+        <h5>Total Faculty</h5>
+        <p>{{ total_faculty }}</p>
+    </div>
+    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
+        <h5>Active School Year</h5>
+        <p>{{ active_school_year }}</p>
+    </div>
+</div>
+
+<a href="{% url 'manage_user' %}" class="btn btn-primary mt-3">Manage Users</a>
+{% endblock %}

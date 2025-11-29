@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Assign Subject{% endblock %}
+
+{% block content %}
+<form method="POST" class="p-4 border rounded shadow-sm bg-light">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="gradeLevel" class="form-label">Grade Level</label>
+        <select id="gradeLevel" name="grade_level" class="form-select" required>
+            <option value="">Select Grade Level</option>
+            {% for grade in grades %}
+                <option value="{{ grade }}">{{ grade }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="subject" class="form-label">Subject</label>
+        <select id="subject" name="subject" class="form-select" required>
+            <option value="">Select Subject</option>
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" name="status" class="form-select" required>
+            <option value="">Select Status</option>
+            {% for s in status_choices %}
+                <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Assign</button>
+</form>
+
+
+
+{% endblock %}

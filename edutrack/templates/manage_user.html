@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage User{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2>User Management</h2>
+
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="userTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'students' %}active{% endif %}" href="?tab=students">Students</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'faculty' %}active{% endif %}" href="?tab=faculty">Faculty</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'admins' %}active{% endif %}" href="?tab=admins">Admins</a>
+        </li>
+    </ul>
+
+  <!-- Filters & Search -->
+<form method="get" class="mt-3 d-flex gap-2 align-items-center">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ search }}">
+
+    {% if tab == 'students' %}
+
+
+        <a href="{% url 'add_user' 'student' %}" class="btn btn-success ms-auto">Add New Student</a>
+
+    {% elif tab == 'faculty' %}
+
+        <a href="{% url 'add_user' 'faculty' %}" class="btn btn-success ms-auto">Add New Faculty</a>
+
+    {% elif tab == 'admins' %}
+
+        <a href="{% url 'add_user' 'admin' %}" class="btn btn-success ms-auto">Add New Admin</a>
+    {% endif %}
+
+</form>
+
+
+
+    </form>
+
+    <!-- Table -->
+    <div class="table-responsive mt-3">
+    <table class="table table-striped" id="userTable">
+        <thead>
+        {% if tab == 'students' %}
+            <tr>
+                <th>ID</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th><th>Actions</th>
+            </tr>
+        {% elif tab == 'faculty' %}
+            <tr>
+                <th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Subjects</th><th>Actions</th>
+            </tr>
+        {% else %}
+            <tr>
+                <th>Role</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th>
+            </tr>
+        {% endif %}
+        </thead>
+        <tbody>
+{% if tab == 'students' %}
+    {% for s in students %}
+    <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.user.get_full_name }}</td>
+        <td>{{ s.year_level }}</td>
+        <td>{{ s.section }}</td>
+        <td>{{ s.status }}</td>
+        <td>
+            <a href="{% url 'edit_student' s.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="{% url 'delete_student' s.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+{% elif tab == 'faculty' %}
+    {% for f in faculty %}
+    <tr>
+        <td>{{ f.id }}</td>
+        <td>{{ f.user.get_full_name }}</td>
+        <td>{{ f.user.email }}</td>
+        <td>{{ f.department }}</td>
+        <td>{% for sub in f.subjects.all %}{{ sub.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        <td>{{ f.status }}</td>
+        <td>
+            <a href="{% url 'edit_faculties' f.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="{% url 'delete_faculty' f.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+{% elif tab == 'admins' %}
+    {% for a in admins %}
+    <tr>
+        <td>{{ a.id }}</td>
+        <td>{{ a.get_full_name }}</td>
+        <td>{{ a.email }}</td>
+        <td>{{ a.status }}</td>
+        <td>
+            <a href="{% url 'edit_admin' a.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="{% url 'delete_admin' a.id %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+{% endif %}
+
+
+
+        </tbody>
+    </table>
+    </div>
+</div>
+
+{% endblock %}
+

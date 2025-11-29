@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Scores{% endblock %}
+
+{% block content %}
+<h1>Score Management</h1>
+
+  <ul class="nav nav-tabs mt-3">
+    <li class="nav-item"><a class="nav-link {% if tab == 'score' %}active{% endif %}" href="{% url 'score' %}">Overview</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'quiz' %}active{% endif %}" href="{% url 'quiz' %}">Quiz</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'exam' %}active{% endif %}" href="{% url 'exam' %}">Exam</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'project' %}active{% endif %}" href="{% url 'project' %}">Project</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">Attendance</a></li>
+
+  </ul>
+<button type="button" class="btn btn-primary">Add Score</button>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Grade & Section</th>
+                  <th >Subject</th>
+
+             <th >Exam</th>
+        <th >Project</th>
+        <th >Quiz</th>
+        <th >Attendance</th>
+        <th >Grade</th>
+        <th >Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.fullname }}</td>
+            <td>{{ student.grade_and_section }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2" class="text-center">No students found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

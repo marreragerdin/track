@@ -1,0 +1,32 @@
+{% load static %}
+<html>
+<head>
+    <title>Add {{ role|title }}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <style>
+        .card { max-width: 650px; margin: 50px auto; }
+    </style>
+</head>
+<body>
+<div class="card shadow p-4">
+    <h3 class="mb-3">Add New {{ role|title }}</h3>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Display role as a text (readonly) -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Role:</strong></label>
+            <input type="text" class="form-control" value="{{ role|title }}" readonly>
+        </div>
+
+        <!-- Render the actual form -->
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success w-100 mt-3">Add {{ role|title }}</button>
+        <a href="{% url 'manage_user' %}" class="btn btn-secondary w-100 mt-2">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

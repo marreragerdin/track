@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>faculty page</title>
+</head>
+<body>
+
+<h1>Faculty Dashboard</h1>
+<h1> hello {{ user.username }} your role is faculty</h1>
+<div>
+    <h2>Assigned Classes</h2>
+    <ul>
+        {% for subject in assigned_classes %}
+            <li>{{ subject.name }}</li>
+        {% endfor %}
+    </ul>
+    <div>Pending Scores: {{ pending_scores }}</div>
+</div>
+
+</body>
+</html>

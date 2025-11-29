@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Assigned Subject{% endblock %}
+
+{% block content %}
+<h1>Edit Assigned Subject</h1>
+<form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label>Grade Level</label>
+        <select name="grade_level" class="form-select" required>
+            {% for grade in grades %}
+                <option value="{{ grade }}" {% if assigned.grade_level == grade %}selected{% endif %}>{{ grade }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Subject</label>
+        <select name="subject" class="form-select" required>
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}" {% if assigned.subject.id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Status</label>
+        <select name="status" class="form-select" required>
+            {% for s in status_choices %}
+                <option value="{{ s }}" {% if assigned.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-success">Update</button>
+    <a href="{% url 'assign_subject' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

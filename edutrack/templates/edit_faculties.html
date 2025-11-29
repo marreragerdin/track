@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Edit Faculty{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Edit Faculty</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-control" name="first_name" value="{{ faculty.user.first_name }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-control" name="last_name" value="{{ faculty.user.last_name }}">
+        </div>
+        <div class="mb-3">
+              <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="text" class="form-control" name="email" value="{{ faculty.user.email }}">
+        </div>
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" value="{{ faculty.user.username }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password (leave blank to keep current)</label>
+            <input type="password" class="form-control" name="password">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input type="text" class="form-control" name="department" value="{{ faculty.department }}">
+        </div>
+  <div class="mb-3">
+    <label class="form-label">Subjects</label>
+    <select class="form-select" name="subjects" multiple>
+        {% for sub in all_subjects %}
+            <option value="{{ sub.id }}"
+                {% if sub in faculty.subjects.all %}selected{% endif %}>
+                {{ sub.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+                <option value="Active" {% if faculty.status == 'Active' %}selected{% endif %}>Active</option>
+                <option value="Inactive" {% if faculty.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'manage_user' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

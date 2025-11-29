@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Edit Subject{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Subject</h2>
+  <a href="{% url 'academic_setup' %}?tab=subject" class="btn btn-secondary mb-3">Go Back</a>
+
+  <form method="post">
+    {% csrf_token %}
+    <label>Code</label>
+    <input type="text" name="code" value="{{ obj.code }}" class="form-control mb-2">
+
+    <label>Name</label>
+    <input type="text" name="name" value="{{ obj.name }}" class="form-control mb-2">
+
+    <label>Grade Level</label>
+    <input type="text" name="grade_level" value="{{ obj.grade_level }}" class="form-control mb-2">
+
+    <label>Status</label>
+    <select name="status" class="form-select mb-2">
+      <option value="Active" {% if obj.status == 'Active' %}selected{% endif %}>Active</option>
+      <option value="Inactive" {% if obj.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+
+    <label>Sections Covered (comma separated)</label>
+    <input type="text" name="sections_covered" value="{{ obj.sections_covered }}" class="form-control mb-3">
+
+    <button class="btn btn-success">Update</button>
+  </form>
+</div>
+{% endblock %}

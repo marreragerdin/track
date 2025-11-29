@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Academic Setup{% endblock %}
+
+{% block content %}
+
+    <h1>Score Management</h1>
+
+  <ul class="nav nav-tabs mt-3">
+    <li class="nav-item"><a class="nav-link {% if tab == 'score' %}active{% endif %}" href="{% url 'score' %}">Overview</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'quiz' %}active{% endif %}" href="{% url 'quiz' %}">Quiz</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'exam' %}active{% endif %}" href="{% url 'exam' %}">Exam</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'project' %}active{% endif %}" href="{% url 'project' %}">Project</a></li>
+    <li class="nav-item"><a class="nav-link {% if tab == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">Attendance</a></li>
+
+  </ul>
+<button type="button" class="btn btn-primary">Add Attendance</button>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Student Name</th>
+      <th scope="col">Subject</th>
+      <th scope="col">Section</th>
+      <th scope="col">Exam</th>
+        <th scope="col">Project</th>
+        <th scope="col">Quiz</th>
+        <th scope="col">Attendance</th>
+        <th scope="col">Grade</th>
+        <th scope="col">Actions</th>
+
+
+    </tr>
+  </thead>
+  </tbody>
+</table>
+{% endblock %}

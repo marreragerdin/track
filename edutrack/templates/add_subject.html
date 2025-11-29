@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Add Subject{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Add Subject</h2>
+  <a href="{% url 'academic_setup' %}?tab=subject" class="btn btn-secondary mb-3">Go Back</a>
+
+  <form method="post">
+    {% csrf_token %}
+    <label>Code</label>
+    <input name="code" class="form-control mb-2" required>
+
+    <label>Name</label>
+    <input name="name" class="form-control mb-2" required>
+
+
+    <div id="sectionFields" class="mb-3"></div>
+
+    <label>Status</label>
+    <select name="status" class="form-select mb-3">
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+
+    <button class="btn btn-success">Save</button>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const sectionCount = document.getElementById('sectionCount');
+  const sectionFields = document.getElementById('sectionFields');
+
+  const form = sectionFields.closest("form"); // para sure nasa form sya
+
+  let hiddenCount = document.createElement('input');
+  hiddenCount.type = 'hidden';
+  hiddenCount.name = 'sections_count';
+  hiddenCount.id = 'sections_count_hidden';
+  form.appendChild(hiddenCount);
+
+  sectionCount.addEventListener('input', function(){
+    const n = parseInt(this.value) || 0;
+    sectionFields.innerHTML = '';
+
+    for(let i=1;i<=n;i++){
+      sectionFields.innerHTML += `
+        <label>Section ${i}</label>
+        <input type="text" name="section_${i}" class="form-control mb-2">
+      `;
+    }
+
+    hiddenCount.value = n;
+  });
+});
+
+</script>
+{% endblock %}
