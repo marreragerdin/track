@@ -1,0 +1,37 @@
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ modal_id }}Label">{{ modal_title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ form_action }}" data-modal-form="true">
+                {% csrf_token %}
+                <input type="hidden" name="tab" value="school_year">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="year" class="form-label">School Year</label>
+                        <select name="year" id="year" class="form-select" required>
+                            <option value="">Select Year</option>
+                            {% for year in years %}
+                            <option value="{{ year }}-{{ year|add:1 }}">{{ year }}-{{ year|add:1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

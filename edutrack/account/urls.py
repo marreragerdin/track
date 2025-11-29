@@ -9,6 +9,8 @@ urlpatterns = [
 
     # Student & Faculty
     path('student/', views.student, name='student'),
+    path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
+    path('student/scores/', views.student_scores, name='student_scores'),
     path('faculty/', views.faculty, name='faculty'),
 
     # Admin pages (You had duplicates here, I kept the standard 'admin/')
@@ -69,7 +71,7 @@ path('academic_setup/grading/delete/<int:pk>/', views.delete_grading, name='dele
 
     path('view_student/<int:id>/', views.view_student, name='view_student'),
     path('add/', views.add, name='add'),
-    path('edit/<int:id>', views.edit, name='edit'),
+     path('edit/<int:id>/', views.edit, name='edit'),
     path('delete/<int:id>/', views.delete, name='delete'),
 
     path('assign_subject/', views.assign_subject, name='assign_subject'),
@@ -77,11 +79,30 @@ path('academic_setup/grading/delete/<int:pk>/', views.delete_grading, name='dele
     path('assign_subject/edit/<int:pk>/', views.edit_assigned_subject, name='edit_assign'),
     path('assign_subject/delete/<int:pk>/', views.delete_assigned_subject, name='delete_assigned_subject'),
     path('score/', views.score, name='score'),
+    path('score/pdf/<int:student_id>/', views.generate_grade_pdf, name='generate_grade_pdf'),
+    path('score/predict/<int:student_id>/<int:subject_id>/', views.predict_student_performance, name='predict_student_performance'),
+    path('score/at-risk/', views.get_at_risk_students, name='at_risk_students'),
+    path('score/edit/quiz/<int:student_id>/<int:subject_id>/', views.edit_quiz_scores, name='edit_quiz_scores'),
+    path('score/edit/exam/<int:student_id>/<int:subject_id>/', views.edit_exam_scores, name='edit_exam_scores'),
+    path('score/edit/project/<int:student_id>/<int:subject_id>/', views.edit_project_scores, name='edit_project_scores'),
+    path('score/edit/attendance/<int:student_id>/<int:subject_id>/', views.edit_attendance_scores, name='edit_attendance_scores'),
 
     path('quiz/', views.quiz, name='quiz'),
+    path('quiz/add/', views.add_quiz, name='add_quiz'),
+    path('quiz/save/', views.save_quiz_scores, name='save_quiz_scores'),
     path('exam/', views.exam, name='exam'),
+    path('exam/add/', views.add_exam, name='add_exam'),
+    path('exam/save/', views.save_exam_scores, name='save_exam_scores'),
     path('project/', views.project, name='project'),
+    path('project/add/', views.add_project, name='add_project'),
+    path('project/save/', views.save_project_scores, name='save_project_scores'),
     path('attendance/', views.attendance, name='attendance'),
+    path('attendance/add/', views.add_attendance_session, name='add_attendance_session'),
+    path('attendance/mark/<int:session_id>/', views.mark_attendance, name='mark_attendance'),
+    path('attendance/save/<int:session_id>/', views.save_attendance, name='save_attendance'),
+    
+    # API endpoints
+    path('api/sections/', views.get_sections_by_grade, name='get_sections_by_grade'),
 
 
 

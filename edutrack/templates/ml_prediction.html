@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Performance Prediction{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Performance Prediction</h2>
+  <p class="text-muted">{{ student.fullname }} - {{ subject.name }}</p>
+  <a href="{% url 'score' %}" class="btn btn-secondary mb-3">Go Back</a>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+          <h5>Current Performance</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <td><strong>Quiz Average:</strong></td>
+              <td>{{ avg_quiz|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td><strong>Exam Average:</strong></td>
+              <td>{{ avg_exam|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td><strong>Project Average:</strong></td>
+              <td>{{ avg_project|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td><strong>Attendance:</strong></td>
+              <td>{{ avg_attendance|floatformat:2 }}%</td>
+            </tr>
+            <tr>
+              <td><strong>Current Grade:</strong></td>
+              <td><strong>{{ current_grade|floatformat:2 }}</strong></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-header bg-info text-white">
+          <h5>ML Prediction</h5>
+        </div>
+        <div class="card-body">
+          <h4>Predicted Final Grade: <strong>{{ predicted_grade|floatformat:2 }}</strong></h4>
+          <hr>
+          <h5>Performance Category: 
+            {% if predicted_category == 'Excellent' %}
+              <span class="badge bg-success">{{ predicted_category }}</span>
+            {% elif predicted_category == 'Good' %}
+              <span class="badge bg-info">{{ predicted_category }}</span>
+            {% elif predicted_category == 'Average' %}
+              <span class="badge bg-warning">{{ predicted_category }}</span>
+            {% else %}
+              <span class="badge bg-danger">{{ predicted_category }}</span>
+            {% endif %}
+          </h5>
+          {% if predicted_category == 'At Risk' %}
+          <div class="alert alert-danger mt-3">
+            <strong>Warning:</strong> This student is predicted to be at risk based on current performance trends.
+            Consider additional support or intervention.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

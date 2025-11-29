@@ -27,6 +27,12 @@ class Subject(models.Model):
     code = models.CharField(max_length=20, default='DEFAULT_CODE')
     name = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
+    grade_level = models.CharField(max_length=10, choices=[
+        ('Grade 7', 'Grade 7'),
+        ('Grade 8', 'Grade 8'),
+        ('Grade 9', 'Grade 9'),
+        ('Grade 10', 'Grade 10')
+    ], blank=True, null=True)
 
     status = models.CharField(max_length=10, choices=[('Active','Active'),('Inactive','Inactive')])
 
@@ -175,6 +181,140 @@ class Score(models.Model):
 
     def __str__(self):
         return f"{self.student.fullname} Score"
+
+class QuizScore(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='quiz_scores')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='quiz_scores')
+    quiz_number = models.PositiveIntegerField()
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'subject', 'quiz_number']
+        ordering = ['subject', 'quiz_number']
+
+    def __str__(self):
+        return f"{self.student.fullname} - {self.subject.name} - Quiz {self.quiz_number}: {self.score}"
+
+class ExamScore(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='exam_scores')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='exam_scores')
+    exam_number = models.PositiveIntegerField()
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'subject', 'exam_number']
+        ordering = ['subject', 'exam_number']
+
+    def __str__(self):
+        return f"{self.student.fullname} - {self.subject.name} - Exam {self.exam_number}: {self.score}"
+
+class ProjectScore(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='project_scores')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='project_scores')
+    project_number = models.PositiveIntegerField()
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'subject', 'project_number']
+        ordering = ['subject', 'project_number']
+
+    def __str__(self):
+        return f"{self.student.fullname} - {self.subject.name} - Project {self.project_number}: {self.score}"
+
+class WeeklyAttendanceSession(models.Model):
+    """Represents a weekly attendance session for a subject"""
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='attendance_sessions')
+    week_number = models.PositiveIntegerField()  # Week 1, Week 2, etc.
+    week_start_date = models.DateField()
+    week_end_date = models.DateField()
+    sessions_per_week = models.PositiveIntegerField(default=4)  # Usually 4 sessions per week (M, T, W, Th)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['subject', 'week_number']
+        ordering = ['subject', 'week_number']
+    
+    def __str__(self):
+        return f"{self.subject.name} - Week {self.week_number}"
+
+class WeeklyAttendanceRecord(models.Model):
+    """Individual student attendance record for a weekly session"""
+    ATTENDANCE_CHOICES = [
+        ('P', 'Present'),
+        ('A', 'Absent'),
+        ('L', 'Late'),
+        ('E', 'Excused'),
+    ]
+    
+    session = models.ForeignKey(WeeklyAttendanceSession, on_delete=models.CASCADE, related_name='attendance_records')
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='weekly_attendance')
+    session_1 = models.CharField(max_length=1, choices=ATTENDANCE_CHOICES, default='A', blank=True, null=True)
+    session_2 = models.CharField(max_length=1, choices=ATTENDANCE_CHOICES, default='A', blank=True, null=True)
+    session_3 = models.CharField(max_length=1, choices=ATTENDANCE_CHOICES, default='A', blank=True, null=True)
+    session_4 = models.CharField(max_length=1, choices=ATTENDANCE_CHOICES, default='A', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['session', 'student']
+        ordering = ['session', 'student']
+    
+    def get_attendance_summary(self):
+        """Returns attendance summary like 'P,P,L,A'"""
+        sessions = []
+        for i in range(1, 5):
+            attr_name = f'session_{i}'
+            value = getattr(self, attr_name, None)
+            sessions.append(value if value else '-')
+        return ','.join(sessions)
+    
+    def calculate_percentage(self):
+        """Calculate attendance percentage for this week"""
+        sessions = []
+        for i in range(1, 5):
+            attr_name = f'session_{i}'
+            value = getattr(self, attr_name, None)
+            if value:
+                sessions.append(value)
+        
+        if not sessions:
+            return 0
+        
+        present_count = sum(1 for s in sessions if s == 'P')
+        total_sessions = len([s for s in sessions if s != '-'])
+        
+        if total_sessions == 0:
+            return 0
+        
+        return round((present_count / total_sessions) * 100, 2)
+    
+    def __str__(self):
+        return f"{self.student.fullname} - {self.session} - {self.get_attendance_summary()}"
+
+class MLPredictionStatus(models.Model):
+    """Store ML prediction status for student-subject combinations"""
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='ml_predictions')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='ml_predictions')
+    predicted_grade = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    predicted_category = models.CharField(max_length=20, choices=[
+        ('Excellent', 'Excellent'),
+        ('Good', 'Good'),
+        ('Average', 'Average'),
+        ('At Risk', 'At Risk'),
+    ], null=True, blank=True)
+    predicted_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['student', 'subject']
+        ordering = ['-predicted_at']
+    
+    def __str__(self):
+        return f"{self.student.fullname} - {self.subject.name} - {self.predicted_category or 'Not Predicted'}"
 
 
 from django.db.models.signals import post_save

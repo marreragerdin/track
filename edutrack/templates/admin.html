@@ -1,24 +1,210 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
 <h1>Admin Dashboard</h1>
 
+<!-- User Count Cards -->
 <div class="row mt-3">
-    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
-        <h5>Total Students</h5>
-        <p>{{ total_students }}</p>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-user-shield"></i> Admin Users</h5>
+                <h2 class="card-text">{{ total_admins }}</h2>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
-        <h5>Total Faculty</h5>
-        <p>{{ total_faculty }}</p>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chalkboard-teacher"></i> Faculty</h5>
+                <h2 class="card-text">{{ total_faculty }}</h2>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 bg-white p-3 mb-3 shadow-sm">
-        <h5>Active School Year</h5>
-        <p>{{ active_school_year }}</p>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-user-graduate"></i> Students</h5>
+                <h2 class="card-text">{{ total_students }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-book"></i> Student Records</h5>
+                <h2 class="card-text">{{ total_student_records }}</h2>
+            </div>
+        </div>
     </div>
 </div>
 
-<a href="{% url 'manage_user' %}" class="btn btn-primary mt-3">Manage Users</a>
+<!-- Grade Distribution Cards -->
+<div class="row mt-3">
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Excellent (90+)</h5>
+                <h2 class="card-text">{{ excellent_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Good (80-89)</h5>
+                <h2 class="card-text">{{ good_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Average (70-79)</h5>
+                <h2 class="card-text">{{ average_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">At Risk (<70)</h5>
+                <h2 class="card-text">{{ at_risk_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Grade Distribution</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Distribution of students by performance category based on their overall grades.</p>
+                <canvas id="gradeChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> User Distribution</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Breakdown of user accounts by role (Admin, Faculty, Students).</p>
+                <canvas id="userChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'manage_user' %}" class="btn btn-primary">Manage Users</a>
+    <a href="{% url 'academic_setup' %}" class="btn btn-secondary">Academic Setup</a>
+    <a href="{% url 'score' %}" class="btn btn-info">View Scores</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Grade Distribution Chart
+    const gradeCtx = document.getElementById('gradeChart').getContext('2d');
+    const gradeChart = new Chart(gradeCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Excellent', 'Good', 'Average', 'At Risk'],
+            datasets: [{
+                label: 'Number of Students',
+                data: [{{ excellent_count }}, {{ good_count }}, {{ average_count }}, {{ at_risk_count }}],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(23, 162, 184, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    enabled: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // User Distribution Chart
+    const userCtx = document.getElementById('userChart').getContext('2d');
+    const userChart = new Chart(userCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Admins', 'Faculty', 'Students'],
+            datasets: [{
+                data: [{{ total_admins }}, {{ total_faculty }}, {{ total_students }}],
+                backgroundColor: [
+                    'rgba(0, 123, 255, 0.8)',
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(23, 162, 184, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(0, 123, 255, 1)',
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right'
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed + ' users';
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

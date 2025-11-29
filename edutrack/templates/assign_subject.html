@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1>Assign Subject</h1>
-<a href="{% url 'assign' %}" class="btn btn-primary mb-3">Assign Subject</a>
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#assignSubjectModal">Assign Subject</button>
 
 <table class="table table-hover">
   <thead class="table-dark">
@@ -16,13 +16,13 @@
     </tr>
   </thead>
   <tbody>
-    {% for item in assigned_subjects %}
+    {% for item in page_obj %}
       <tr>
         <td>{{ item.subject.name }}</td>
         <td>{{ item.grade_level }}</td>
         <td>{{ item.status }}</td>
        <td>
-  <a href="{% url 'edit_assign' item.id %}" class="btn btn-sm btn-warning">Edit</a>
+  <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAssignSubjectModal{{ item.id }}">Edit</button>
   <a href="{% url 'delete_assigned_subject' item.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
 </td>
 
@@ -34,4 +34,92 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Assign Subject Modal - will be loaded dynamically -->
+<div class="modal fade" id="assignSubjectModal" tabindex="-1" aria-labelledby="assignSubjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load assign subject modal dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const addBtn = document.querySelector('[data-bs-target="#assignSubjectModal"]');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const modalElement = document.getElementById('assignSubjectModal');
+            if (!modalElement.querySelector('form')) {
+                fetch('{% url "assign" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const fullModal = tempDiv.querySelector('.modal');
+                    if (fullModal) {
+                        const modalContent = fullModal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                        }
+                    } else {
+                        const modalContent = tempDiv.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading modal:', error);
+                });
+            }
+        });
+    }
+});
+</script>
+
+<!-- Edit Assign Subject Modals -->
+{% for item in page_obj %}
+    {% include 'modals/edit_assign_subject_modal.html' with item=item %}
+{% endfor %}
+
+<!-- Pagination -->
+{% if page_obj %}
+<nav aria-label="Page navigation" class="mt-3">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}

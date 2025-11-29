@@ -1,0 +1,52 @@
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ modal_id }}Label">{{ modal_title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ form_action }}" data-modal-form="true">
+                {% csrf_token %}
+                <input type="hidden" name="tab" value="faculty">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <select name="subject" id="subject" class="form-select" required>
+                            <option value="">Select Subject</option>
+                            {% for subject in subjects_qs %}
+                            <option value="{{ subject.id }}">{{ subject.name }} ({{ subject.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Select Faculty</label>
+                        <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
+                            {% for faculty in faculties %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="faculty_{{ faculty.id }}" id="faculty_{{ faculty.id }}" value="{{ faculty.id }}">
+                                <label class="form-check-label" for="faculty_{{ faculty.id }}">
+                                    {{ faculty.user.get_full_name|default:faculty.user.username|default:faculty.user.get_username }}
+                                </label>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">No faculty members found.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

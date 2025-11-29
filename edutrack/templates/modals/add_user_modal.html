@@ -1,0 +1,329 @@
+<div class="modal fade" id="addUserModal{{ role|title }}" tabindex="-1" aria-labelledby="addUserModal{{ role|title }}Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModal{{ role|title }}Label">Add {{ role|title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_user' role %}" data-modal-form="true">
+                {% csrf_token %}
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Role:</strong></label>
+                        <input type="text" class="form-control" value="{{ role|title }}" readonly>
+                    </div>
+                    
+                    {% if role == 'admin' %}
+                        {# Admin form - two columns, simplified fields #}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        {{ form.first_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        {{ form.last_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                                        {{ form.username.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.username }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        {{ form.email.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.password.id_for_label }}" class="form-label">
+                                        {{ form.password.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.password }}
+                                </div>
+                            </div>
+                        </div>
+                    {% elif role == 'faculty' %}
+                        {# Faculty form - two columns #}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        {{ form.first_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        {{ form.last_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                                        {{ form.username.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.username }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        {{ form.email.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.password.id_for_label }}" class="form-label">
+                                        {{ form.password.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.password }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.department.id_for_label }}" class="form-label">
+                                        {{ form.department.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.department }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        {{ form.status.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.status }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.subjects.label }}</label>
+                                    <div class="border p-3" style="max-height: 200px; overflow-y: auto;">
+                                        {% for checkbox in form.subjects %}
+                                            <div class="form-check">
+                                                {{ checkbox.tag }}
+                                                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                                    {{ checkbox.choice_label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        {# Student form - two columns #}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        {{ form.first_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        {{ form.last_name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                                        {{ form.username.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.username }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.password.id_for_label }}" class="form-label">
+                                        {{ form.password.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.password }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.grade_level.id_for_label }}" class="form-label">
+                                        {{ form.grade_level.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.grade_level }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.section.id_for_label }}" class="form-label">
+                                        {{ form.section.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.section }}
+                                    {% if form.section.help_text %}
+                                        <small class="form-text text-muted">{{ form.section.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                        {{ form.gender.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.gender }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.age.id_for_label }}" class="form-label">
+                                        {{ form.age.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.age }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                                        {{ form.address.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.address }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.parent.id_for_label }}" class="form-label">
+                                        {{ form.parent.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.parent }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.parent_contact.id_for_label }}" class="form-label">
+                                        {{ form.parent_contact.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.parent_contact }}
+                                    {% if form.parent_contact.help_text %}
+                                        <small class="form-text text-muted">{{ form.parent_contact.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        {{ form.status.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.status }}
+                                </div>
+                            </div>
+                        </div>
+                    <script>
+                        // Initialize when modal content is loaded (for student form)
+                        function initStudentForm() {
+                            const gradeSelect = document.getElementById('id_grade_level');
+                            const sectionSelect = document.getElementById('id_section');
+                            if (gradeSelect && sectionSelect) {
+                                gradeSelect.addEventListener('change', function() {
+                                    fetch(`/api/sections/?grade=${encodeURIComponent(this.value)}`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                                            if (data.sections && data.sections.length > 0) {
+                                                data.sections.forEach(section => {
+                                                    const option = document.createElement('option');
+                                                    option.value = section.id;
+                                                    option.textContent = section.name;
+                                                    sectionSelect.appendChild(option);
+                                                });
+                                            }
+                                        });
+                                });
+                            }
+                        }
+                        
+                        // Run on DOMContentLoaded or immediately if already loaded
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', initStudentForm);
+                        } else {
+                            initStudentForm();
+                        }
+                    </script>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

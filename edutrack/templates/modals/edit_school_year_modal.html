@@ -1,0 +1,37 @@
+<div class="modal fade" id="editSchoolYearModal{{ obj.id }}" tabindex="-1" aria-labelledby="editSchoolYearModal{{ obj.id }}Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSchoolYearModal{{ obj.id }}Label">Edit School Year</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'edit_school_year' obj.id %}" data-modal-form="true">
+                {% csrf_token %}
+                <input type="hidden" name="tab" value="school_year">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="year" class="form-label">School Year</label>
+                        <select name="year" id="year" class="form-select" required>
+                            <option value="">Select Year</option>
+                            {% for year in years %}
+                            <option value="{{ year }}-{{ year|add:1 }}" {% if obj.year == year|stringformat:"s"|add:"-"|add:year|add:1|stringformat:"s" %}selected{% endif %}>{{ year }}-{{ year|add:1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="Active" {% if obj.status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if obj.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

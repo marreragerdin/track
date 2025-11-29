@@ -29,15 +29,15 @@
     {% if tab == 'students' %}
 
 
-        <a href="{% url 'add_user' 'student' %}" class="btn btn-success ms-auto">Add New Student</a>
+        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalStudent">Add New Student</button>
 
     {% elif tab == 'faculty' %}
 
-        <a href="{% url 'add_user' 'faculty' %}" class="btn btn-success ms-auto">Add New Faculty</a>
+        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalFaculty">Add New Faculty</button>
 
     {% elif tab == 'admins' %}
 
-        <a href="{% url 'add_user' 'admin' %}" class="btn btn-success ms-auto">Add New Admin</a>
+        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalAdmin">Add New Admin</button>
     {% endif %}
 
 </form>
@@ -56,7 +56,7 @@
             </tr>
         {% elif tab == 'faculty' %}
             <tr>
-                <th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Subjects</th><th>Actions</th>
+                <th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Subjects</th><th>Status</th><th>Actions</th>
             </tr>
         {% else %}
             <tr>
@@ -66,7 +66,7 @@
         </thead>
         <tbody>
 {% if tab == 'students' %}
-    {% for s in students %}
+    {% for s in page_obj %}
     <tr>
         <td>{{ s.id }}</td>
         <td>{{ s.user.get_full_name }}</td>
@@ -74,14 +74,14 @@
         <td>{{ s.section }}</td>
         <td>{{ s.status }}</td>
         <td>
-            <a href="{% url 'edit_student' s.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal{{ s.id }}">Edit</button>
             <a href="{% url 'delete_student' s.id %}" class="btn btn-sm btn-danger">Delete</a>
         </td>
     </tr>
     {% endfor %}
 
 {% elif tab == 'faculty' %}
-    {% for f in faculty %}
+    {% for f in page_obj %}
     <tr>
         <td>{{ f.id }}</td>
         <td>{{ f.user.get_full_name }}</td>
@@ -90,21 +90,21 @@
         <td>{% for sub in f.subjects.all %}{{ sub.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
         <td>{{ f.status }}</td>
         <td>
-            <a href="{% url 'edit_faculties' f.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editFacultyModal{{ f.id }}">Edit</button>
             <a href="{% url 'delete_faculty' f.id %}" class="btn btn-sm btn-danger">Delete</a>
         </td>
     </tr>
     {% endfor %}
 
 {% elif tab == 'admins' %}
-    {% for a in admins %}
+    {% for a in page_obj %}
     <tr>
         <td>{{ a.id }}</td>
         <td>{{ a.get_full_name }}</td>
         <td>{{ a.email }}</td>
         <td>{{ a.status }}</td>
         <td>
-            <a href="{% url 'edit_admin' a.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ a.id }}">Edit</button>
             <a href="{% url 'delete_admin' a.id %}" class="btn btn-sm btn-danger">Delete</a>
         </td>
     </tr>
@@ -116,7 +116,233 @@
         </tbody>
     </table>
     </div>
+    
+    <!-- Pagination -->
+    {% if page_obj %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab={{ tab }}&page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
+
+<!-- Add User Modals - will be loaded dynamically -->
+<div class="modal fade" id="addUserModalStudent" tabindex="-1" aria-labelledby="addUserModalStudentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addUserModalFaculty" tabindex="-1" aria-labelledby="addUserModalFacultyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addUserModalAdmin" tabindex="-1" aria-labelledby="addUserModalAdminLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modals - will be loaded dynamically -->
+{% if tab == 'students' %}
+    {% for s in page_obj %}
+    <div class="modal fade" id="editStudentModal{{ s.id }}" tabindex="-1" aria-labelledby="editStudentModal{{ s.id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% elif tab == 'faculty' %}
+    {% for f in page_obj %}
+    <div class="modal fade" id="editFacultyModal{{ f.id }}" tabindex="-1" aria-labelledby="editFacultyModal{{ f.id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% elif tab == 'admins' %}
+    {% for a in page_obj %}
+    <div class="modal fade" id="editAdminModal{{ a.id }}" tabindex="-1" aria-labelledby="editAdminModal{{ a.id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<script>
+// Load add user modals dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const modalButtons = {
+        'addUserModalStudent': 'student',
+        'addUserModalFaculty': 'faculty',
+        'addUserModalAdmin': 'admin'
+    };
+    
+    Object.keys(modalButtons).forEach(function(modalId) {
+        const button = document.querySelector(`[data-bs-target="#${modalId}"]`);
+        if (button) {
+            button.addEventListener('click', function() {
+                const modalElement = document.getElementById(modalId);
+                const role = modalButtons[modalId];
+                
+                // Only load if modal content is empty or just has spinner
+                if (!modalElement.querySelector('form')) {
+                    fetch(`/add_user/${role}/`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        // The response is the full modal, extract just the modal-content
+                        const fullModal = tempDiv.querySelector('.modal');
+                        if (fullModal) {
+                            const modalContent = fullModal.querySelector('.modal-content');
+                            if (modalContent) {
+                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                            }
+                        } else {
+                            // Fallback: try to find modal-content directly
+                            const modalContent = tempDiv.querySelector('.modal-content');
+                            if (modalContent) {
+                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading modal:', error);
+                    });
+                }
+            });
+        }
+    });
+    
+    // Load edit user modals dynamically
+    document.querySelectorAll('[data-bs-target^="#editStudentModal"], [data-bs-target^="#editFacultyModal"], [data-bs-target^="#editAdminModal"]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-bs-target').replace('#', '');
+            const modalElement = document.getElementById(modalId);
+            
+            if (modalElement && (!modalElement.querySelector('form') || modalElement.querySelector('.spinner-border'))) {
+                // Extract user_type and pk from modal ID
+                let userType = '';
+                let pk = '';
+                
+                if (modalId.startsWith('editStudentModal')) {
+                    userType = 'student';
+                    pk = modalId.replace('editStudentModal', '');
+                } else if (modalId.startsWith('editFacultyModal')) {
+                    userType = 'faculty';
+                    pk = modalId.replace('editFacultyModal', '');
+                } else if (modalId.startsWith('editAdminModal')) {
+                    userType = 'admin';
+                    pk = modalId.replace('editAdminModal', '');
+                }
+                
+                if (userType && pk) {
+                    fetch(`/edit_user/${userType}/${pk}/`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        const fullModal = tempDiv.querySelector('.modal');
+                        if (fullModal) {
+                            const modalContent = fullModal.querySelector('.modal-content');
+                            if (modalContent) {
+                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                            }
+                        } else {
+                            const modalContent = tempDiv.querySelector('.modal-content');
+                            if (modalContent) {
+                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading edit modal:', error);
+                    });
+                }
+            }
+        });
+    });
+});
+</script>
 
 {% endblock %}
 

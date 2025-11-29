@@ -1,0 +1,54 @@
+<div class="modal fade" id="atRiskStudentsModal" tabindex="-1" aria-labelledby="atRiskStudentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="atRiskStudentsModalLabel">At-Risk Students</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if at_risk_list %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Grade & Section</th>
+                                <th>Subject</th>
+                                <th>Current Grade</th>
+                                <th>Quiz Avg</th>
+                                <th>Exam Avg</th>
+                                <th>Project Avg</th>
+                                <th>Attendance %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in at_risk_list %}
+                            <tr>
+                                <td>{{ item.student.fullname }}</td>
+                                <td>{{ item.student.grade_and_section }}</td>
+                                <td>{{ item.subject.name }}</td>
+                                <td><strong class="text-danger">{{ item.current_grade|floatformat:2 }}</strong></td>
+                                <td>{% if item.avg_quiz %}{{ item.avg_quiz|floatformat:2 }}{% else %}-{% endif %}</td>
+                                <td>{% if item.avg_exam %}{{ item.avg_exam|floatformat:2 }}{% else %}-{% endif %}</td>
+                                <td>{% if item.avg_project %}{{ item.avg_project|floatformat:2 }}{% else %}-{% endif %}</td>
+                                <td>{% if item.avg_attendance %}{{ item.avg_attendance|floatformat:2 }}%{% else %}-{% endif %}</td>
+                                <td><span class="badge bg-danger">{{ item.performance_category }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No at-risk students found. All students are performing well!
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+

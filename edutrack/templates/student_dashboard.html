@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>My Dashboard</h1>
+  
+  {% if student_record %}
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h3>Student Information</h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Student ID:</strong> {{ student_record.student_id }}</p>
+          <p><strong>Full Name:</strong> {{ student_record.fullname }}</p>
+          <p><strong>Grade & Section:</strong> {{ student_record.grade_and_section }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Gender:</strong> {{ student_record.gender }}</p>
+          <p><strong>Age:</strong> {{ student_record.age }}</p>
+          <p><strong>Status:</strong> {{ student_record.status }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>My Scores & Grades</h2>
+  
+  {% if student_subjects %}
+    {% for subject_data in student_subjects %}
+      {% if subject_data.auto_category == 'At Risk' or subject_data.performance_category == 'At Risk' %}
+        <div class="alert alert-danger">
+          <strong><i class="fas fa-exclamation-triangle"></i> At Risk Alert:</strong> 
+          Your grade in <strong>{{ subject_data.subject.name }}</strong> is below 70. Please seek help from your teacher.
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Subject</th>
+          <th>Quiz Average</th>
+          <th>Exam Average</th>
+          <th>Project Average</th>
+          <th>Attendance %</th>
+          <th>Overall Grade</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subject_data in student_subjects %}
+        {% with status=subject_data.auto_category|default:subject_data.performance_category %}
+        <tr {% if status == 'At Risk' %}class="table-danger"{% elif status == 'Excellent' %}class="table-success"{% elif status == 'Good' %}class="table-info"{% elif status == 'Average' %}class="table-warning"{% endif %}>
+          <td><strong>{{ subject_data.subject.name }} ({{ subject_data.subject.code }})</strong></td>
+          <td>
+            {% if subject_data.quiz_average %}
+              {{ subject_data.quiz_average|floatformat:2 }}
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if subject_data.exam_average %}
+              {{ subject_data.exam_average|floatformat:2 }}
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if subject_data.project_average %}
+              {{ subject_data.project_average|floatformat:2 }}
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if subject_data.attendance_average %}
+              {{ subject_data.attendance_average|floatformat:2 }}%
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if subject_data.grade %}
+              <strong>{{ subject_data.grade|floatformat:2 }}</strong>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if status %}
+              {% if status == 'At Risk' %}
+                <span class="badge bg-danger">At Risk</span>
+              {% elif status == 'Average' %}
+                <span class="badge bg-warning">Average</span>
+              {% elif status == 'Good' %}
+                <span class="badge bg-info">Good</span>
+              {% elif status == 'Excellent' %}
+                <span class="badge bg-success">Excellent</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No scores available yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">
+    <h4>Student Record Not Found</h4>
+    <p>Your student record could not be found. Please contact the administrator.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

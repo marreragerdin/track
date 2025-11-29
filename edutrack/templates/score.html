@@ -12,7 +12,11 @@
     <li class="nav-item"><a class="nav-link {% if tab == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">Attendance</a></li>
 
   </ul>
-<button type="button" class="btn btn-primary">Add Score</button>
+<div class="mb-3">
+  <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#atRiskStudentsModal">
+    <i class="fas fa-exclamation-triangle"></i> View At-Risk Students
+  </button>
+</div>
 
 <table class="table table-striped">
     <thead>
@@ -23,23 +27,364 @@
 
              <th >Exam</th>
         <th >Project</th>
-        <th >Quiz</th>
+            <th >Quiz</th>
         <th >Attendance</th>
         <th >Grade</th>
+        <th >Status</th>
         <th >Actions</th>
         </tr>
     </thead>
     <tbody>
-        {% for student in students %}
-        <tr>
-            <td>{{ student.fullname }}</td>
-            <td>{{ student.grade_and_section }}</td>
-        </tr>
+        {% for data in student_score_data %}
+            {% if data.subjects %}
+                {% for subject_data in data.subjects %}
+                <tr>
+                    {% if forloop.first %}
+                    <td rowspan="{{ data.subjects|length }}">{{ data.student.fullname }}</td>
+                    <td rowspan="{{ data.subjects|length }}">{{ data.student.grade_and_section }}</td>
+                    {% endif %}
+                    <td>{{ subject_data.subject.name }} ({{ subject_data.subject.code }})</td>
+                    <td>
+                        {% if subject_data.exam_average %}
+                            {{ subject_data.exam_average|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if subject_data.project_average %}
+                            {{ subject_data.project_average|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if subject_data.quiz_average %}
+                            {{ subject_data.quiz_average|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if subject_data.attendance_average %}
+                            {{ subject_data.attendance_average|floatformat:2 }}%
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if subject_data.grade %}
+                            <strong>{{ subject_data.grade|floatformat:2 }}</strong>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if subject_data.ml_prediction %}
+                            {% if subject_data.ml_prediction.predicted_category == 'At Risk' %}
+                                <span class="badge bg-danger">At Risk</span>
+                            {% elif subject_data.ml_prediction.predicted_category == 'Average' %}
+                                <span class="badge bg-warning">Average</span>
+                            {% elif subject_data.ml_prediction.predicted_category == 'Good' %}
+                                <span class="badge bg-info">Good</span>
+                            {% elif subject_data.ml_prediction.predicted_category == 'Excellent' %}
+                                <span class="badge bg-success">Excellent</span>
+                            {% endif %}
+                            <br><small class="text-muted">Predicted: {{ subject_data.ml_prediction.predicted_grade|floatformat:2 }}</small>
+                        {% else %}
+                            <span class="text-muted">Not Predicted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn btn-sm btn-danger" title="Generate PDF">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            <button type="button" class="btn btn-sm btn-info predict-btn" 
+                                    data-student-id="{{ data.student.id }}" 
+                                    data-subject-id="{{ subject_data.subject_id }}"
+                                    title="Predict Grade">
+                                <i class="fas fa-brain"></i> Predict
+                            </button>
+                            {% if subject_data.quiz_average %}
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
+                                <i class="fas fa-edit"></i> Quiz
+                            </button>
+                            {% endif %}
+                            {% if subject_data.exam_average %}
+                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editExamModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Exam">
+                                <i class="fas fa-edit"></i> Exam
+                            </button>
+                            {% endif %}
+                            {% if subject_data.project_average %}
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Project">
+                                <i class="fas fa-edit"></i> Project
+                            </button>
+                            {% endif %}
+                            {% if subject_data.attendance_average %}
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
+                                <i class="fas fa-edit"></i> Attendance
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td>{{ data.student.fullname }}</td>
+                    <td>{{ data.student.grade_and_section }}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>
+                        <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                    </td>
+                </tr>
+            {% endif %}
         {% empty %}
         <tr>
-            <td colspan="2" class="text-center">No students found.</td>
+            <td colspan="10" class="text-center">No students found.</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Pagination -->
+{% if page_obj %}
+<nav aria-label="Page navigation" class="mt-3">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- At-Risk Students Modal will be loaded dynamically -->
+
+<!-- Edit Score Modals will be loaded dynamically -->
+
+<script>
+// Handle predict button clicks and at-risk students modal
+document.addEventListener('DOMContentLoaded', function() {
+    // Load at-risk students modal dynamically
+    const atRiskBtn = document.querySelector('[data-bs-target="#atRiskStudentsModal"]');
+    if (atRiskBtn) {
+        // Create modal element if it doesn't exist
+        let modalElement = document.getElementById('atRiskStudentsModal');
+        if (!modalElement) {
+            modalElement = document.createElement('div');
+            modalElement.className = 'modal fade';
+            modalElement.id = 'atRiskStudentsModal';
+            modalElement.setAttribute('tabindex', '-1');
+            modalElement.setAttribute('aria-labelledby', 'atRiskStudentsModalLabel');
+            modalElement.setAttribute('aria-hidden', 'true');
+            modalElement.innerHTML = `
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalElement);
+        }
+        
+        atRiskBtn.addEventListener('click', function() {
+            if (!modalElement.querySelector('.modal-body').innerHTML.trim() || modalElement.querySelector('.spinner-border')) {
+                fetch('{% url "at_risk_students" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const modalContent = tempDiv.querySelector('.modal-content');
+                    if (modalContent && modalElement) {
+                        modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading at-risk students:', error);
+                });
+            }
+        });
+    }
+    
+    // Load edit score modals dynamically
+    document.querySelectorAll('[data-bs-target^="#editQuizModal"], [data-bs-target^="#editExamModal"], [data-bs-target^="#editProjectModal"], [data-bs-target^="#editAttendanceModal"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            const modalId = this.getAttribute('data-bs-target').replace('#', '');
+            let modalElement = document.getElementById(modalId);
+            
+            // Create modal if it doesn't exist
+            if (!modalElement) {
+                modalElement = document.createElement('div');
+                modalElement.className = 'modal fade';
+                modalElement.id = modalId;
+                modalElement.setAttribute('tabindex', '-1');
+                modalElement.setAttribute('aria-labelledby', modalId + 'Label');
+                modalElement.setAttribute('aria-hidden', 'true');
+                modalElement.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modalElement);
+            }
+            
+            // Load content if modal is empty or just has spinner
+            if (!modalElement.querySelector('form') || modalElement.querySelector('.spinner-border')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Extract student_id and subject_id from modal ID
+                // Format: editQuizModal123_456 -> studentId=123, subjectId=456
+                const parts = modalId.split('_');
+                if (parts.length >= 2) {
+                    // Extract the number from the first part (e.g., "editQuizModal123" -> "123")
+                    const firstPart = parts[0];
+                    const studentId = firstPart.replace(/^edit(Quiz|Exam|Project|Attendance)Modal/, '');
+                    const subjectId = parts[1];
+                    
+                    let url = '';
+                    if (modalId.startsWith('editQuizModal')) {
+                        url = `/score/edit/quiz/${studentId}/${subjectId}/`;
+                    } else if (modalId.startsWith('editExamModal')) {
+                        url = `/score/edit/exam/${studentId}/${subjectId}/`;
+                    } else if (modalId.startsWith('editProjectModal')) {
+                        url = `/score/edit/project/${studentId}/${subjectId}/`;
+                    } else if (modalId.startsWith('editAttendanceModal')) {
+                        url = `/score/edit/attendance/${studentId}/${subjectId}/`;
+                    }
+                    
+                    if (url) {
+                        fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = html;
+                            const fullModal = tempDiv.querySelector('.modal');
+                            if (fullModal) {
+                                const modalContent = fullModal.querySelector('.modal-content');
+                                if (modalContent && modalElement) {
+                                    modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                }
+                            } else {
+                                const modalContent = tempDiv.querySelector('.modal-content');
+                                if (modalContent && modalElement) {
+                                    modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                }
+                            }
+                            // Show modal using Bootstrap API after content is loaded
+                            const bootstrapModal = new bootstrap.Modal(modalElement);
+                            bootstrapModal.show();
+                        })
+                        .catch(error => {
+                            console.error('Error loading edit modal:', error);
+                        });
+                    }
+                }
+            }
+            // If modal already has content, let Bootstrap handle showing it normally
+        });
+    });
+    
+    document.querySelectorAll('.predict-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-student-id');
+            const subjectId = this.getAttribute('data-subject-id');
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Predicting...';
+            
+            // Get CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                             document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+            
+            fetch(`/score/predict/${studentId}/${subjectId}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                    alertDiv.style.zIndex = '9999';
+                    alertDiv.innerHTML = `
+                        ${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(alertDiv);
+                    setTimeout(() => alertDiv.remove(), 3000);
+                    
+                    // Reload page to show updated prediction
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    alert(data.message || 'Prediction failed');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

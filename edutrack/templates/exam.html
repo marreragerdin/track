@@ -14,24 +14,154 @@
     <li class="nav-item"><a class="nav-link {% if tab == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">Attendance</a></li>
 
   </ul>
-<button type="button" class="btn btn-primary">Add Exam</button>
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addExamModal">Add Exam</button>
 
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Student Name</th>
-      <th scope="col">Subject</th>
-      <th scope="col">Section</th>
-      <th scope="col">Exam</th>
-        <th scope="col">Project</th>
-        <th scope="col">Quiz</th>
-        <th scope="col">Attendance</th>
-        <th scope="col">Grade</th>
-        <th scope="col">Actions</th>
+{% if exam_data %}
+    {% for data in page_obj %}
+    <div class="mb-4">
+        <h4>{{ data.subject.name }} ({{ data.subject.code }})</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Grade & Section</th>
+                    {% for exam_num in data.exam_numbers %}
+                    <th>Exam {{ exam_num }}</th>
+                    {% endfor %}
+                    <th>Average</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data.student_rows %}
+                <tr>
+                    <td>{{ row.student.fullname }}</td>
+                    <td>{{ row.student.grade_and_section }}</td>
+                    {% for score in row.scores %}
+                    <td>
+                        {% if score %}
+                            {{ score }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td>
+                        {% if row.average %}
+                            {{ row.average|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ data.exam_numbers|length|add:3 }}" class="text-center">No students found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    
+    <!-- Pagination -->
+    {% if page_obj %}
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+{% else %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Grade & Section</th>
+                <th>Subject</th>
+                <th>Exam</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="4" class="text-center">No exam data available. Click "Add Exam" to get started.</td>
+            </tr>
+        </tbody>
+    </table>
+{% endif %}
 
+<!-- Add Exam Modal - will be loaded dynamically -->
+<div class="modal fade" id="addExamModal" tabindex="-1" aria-labelledby="addExamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    </tr>
-  </thead>
-  </tbody>
-</table>
+<script>
+// Load add exam modal dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const addBtn = document.querySelector('[data-bs-target="#addExamModal"]');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const modalElement = document.getElementById('addExamModal');
+            if (!modalElement.querySelector('form')) {
+                fetch('{% url "add_exam" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    // The response is the full modal, extract just the modal-content
+                    const fullModal = tempDiv.querySelector('.modal');
+                    if (fullModal) {
+                        const modalContent = fullModal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                        }
+                    } else {
+                        // Fallback: try to find modal-content directly
+                        const modalContent = tempDiv.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading modal:', error);
+                });
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

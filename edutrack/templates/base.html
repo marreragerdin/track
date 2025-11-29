@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}EduTrack{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
             display: flex;
@@ -40,13 +39,24 @@
 <div class="sidebar">
     <h2>EduTrack</h2>
     <p>Hello, {{ user.username }}</p>
+    <p><small>{{ user.get_role_display }}</small></p>
     <hr>
-    <a href="{% url 'manage_user' %}">Users</a>
-    <a href="{% url 'academic_setup' %}">Academic Setup</a>
-    <a href="{% url 'student_record' %}">Student Record</a>
-    <a href="{% url 'assign_subject' %}">Assign Subject</a>
-    <a href="{% url 'score' %}">Scores</a>
-    <a href="#">Reports</a>
+    {% if user.role == 'admin' %}
+        <a href="{% url 'adminpage' %}">Dashboard</a>
+        <a href="{% url 'manage_user' %}">Users</a>
+        <a href="{% url 'academic_setup' %}">Academic Setup</a>
+        <a href="{% url 'student_record' %}">Student Record</a>
+        <a href="{% url 'assign_subject' %}">Assign Subject</a>
+        <a href="{% url 'score' %}">Scores</a>
+    {% elif user.role == 'faculty' %}
+        <a href="{% url 'faculty' %}">Dashboard</a>
+        <a href="{% url 'student_record' %}">Student Record</a>
+        <a href="{% url 'score' %}">Scores</a>
+    {% elif user.role == 'student' %}
+        <a href="{% url 'student_dashboard' %}">My Dashboard</a>
+        <a href="{% url 'student_scores' %}">My Scores</a>
+    {% endif %}
+    <a href="{% url 'index' %}">Logout</a>
 </div>
 
 
@@ -56,5 +66,7 @@
     {% endblock %}
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/modal_handler.js' %}"></script>
 </body>
 </html>
