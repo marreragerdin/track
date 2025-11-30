@@ -1,8 +1,8 @@
-<div class="modal fade" id="editStudentRecordModal{{ student.id }}" tabindex="-1" aria-labelledby="editStudentRecordModal{{ student.id }}Label" aria-hidden="true">
+<div class="modal fade" id="editStudentRecordModal{{ student.id }}" data-current-section="{{ section_name }}" tabindex="-1" aria-labelledby="editStudentRecordModal{{ student.id }}Label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Student Record</h5>
+                <h5 class="modal-title" id="editStudentRecordModal{{ student.id }}Label">Edit Student Record</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'edit' student.id %}" data-modal-form="true">
@@ -116,6 +116,30 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <hr>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="create_account" id="create_account" value="1" {% if account_exists %}checked{% endif %}>
+                        <label class="form-check-label" for="create_account">
+                            Also create user account for this student
+                        </label>
+                    </div>
+                    <div id="account_fields" style="display: {% if account_exists %}block{% else %}none{% endif %};">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username (for account)</label>
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" value="{{ existing_username|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password (for account)</label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -125,3 +149,4 @@
         </div>
     </div>
 </div>
+

@@ -73,7 +73,7 @@
   </div>
 </div>
 <!--      modal delete student-->
-      <button type="button" class="btn btn-warning me-1 edit-student-btn" data-student-id="{{ student.id }}">
+      <button type="button" class="btn btn-warning me-1" data-bs-toggle="modal" data-bs-target="#editStudentRecordModal{{ student.id }}" data-modal-load="{% url 'edit' student.id %}">
         <i class="fa-solid fa-pen-to-square"></i>
       </button>
       <button type="button" class="btn btn-danger" data-bs-toggle = "modal" data-bs-target="#delete{{student.id}}">
@@ -141,7 +141,8 @@
 {% endif %}
 </div>
 
-<!-- Add Student Modal -->
+
+<!-- Add Student Modal - will be loaded dynamically -->
 <div class="modal fade" id="addStudentRecordModal" tabindex="-1" aria-labelledby="addStudentRecordModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -156,8 +157,349 @@
     </div>
 </div>
 
-<!-- Edit Student Modal - Dynamic -->
-<div class="modal fade" id="editStudentRecordModal" tabindex="-1" aria-labelledby="editStudentRecordModalLabel" aria-hidden="true">
+<script>
+// Modal loading helpers and AJAX submit handler
+document.addEventListener('DOMContentLoaded', function() {
+    function htmlToElement(html) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        return temp;
+    }
+
+    function runInlineScripts(container) {
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            try {
+                const newScript = document.createElement('script');
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                    newScript.async = false;
+                    document.head.appendChild(newScript);
+                } else {
+                    newScript.text = oldScript.textContent;
+                    document.body.appendChild(newScript);
+                    document.body.removeChild(newScript);
+                }
+            } catch (e) {
+                console.error('Error running inline script', e);
+            }
+        });
+    }
+
+    // Global initializer used by both Add and Edit modals to wire grade->section behavior
+    function initStudentRecordModal() {
+        // For each grade select inside modal-content, attach change handler
+        document.querySelectorAll('[id^="id_grade_level_record"]').forEach(function(gradeSelect) {
+            const modalContent = gradeSelect.closest('.modal-content') || document;
+            const sectionSelect = modalContent.querySelector('[id^="id_section_record"]');
+            if (!sectionSelect) return;
+
+            // On change: fetch sections for selected grade
+            gradeSelect.addEventListener('change', function() {
+                const grade = this.value;
+                if (!grade) return;
+                fetch(`/api/sections/?grade=${encodeURIComponent(grade)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                        if (data.sections && data.sections.length) {
+                            data.sections.forEach(s => {
+                                const opt = document.createElement('option');
+                                opt.value = s.id;
+                                opt.text = s.name;
+                                sectionSelect.appendChild(opt);
+                            });
+                        }
+                    })
+                    .catch(err => console.error('Error fetching sections', err));
+            });
+
+            // On init: if there are no options (or only placeholder), try to populate based on current grade value
+            const hasRealOptions = Array.from(sectionSelect.options).some(o => o.value);
+            if (!hasRealOptions && gradeSelect.value) {
+                const currentGrade = gradeSelect.value;
+                // attempt to get the original section name from modal dataset
+                const modalRoot = gradeSelect.closest('.modal');
+                const currentSectionName = modalRoot ? (modalRoot.dataset.currentSection || '') : '';
+                fetch(`/api/sections/?grade=${encodeURIComponent(currentGrade)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                        if (data.sections && data.sections.length) {
+                            data.sections.forEach(s => {
+                                const opt = document.createElement('option');
+                                opt.value = s.id;
+                                opt.text = s.name;
+                                if (currentSectionName && s.name === currentSectionName) opt.selected = true;
+                                sectionSelect.appendChild(opt);
+                            });
+                        }
+                    })
+                    .catch(err => console.error('Error fetching sections', err));
+            }
+        });
+
+        // Wire 'Also create user account' checkbox to show/hide account fields inside the modal
+        document.querySelectorAll('.modal-content').forEach(modalContent => {
+            try {
+                const checkbox = modalContent.querySelector('input[name="create_account"]');
+                const accountFields = modalContent.querySelector('#account_fields');
+                const passwordInput = modalContent.querySelector('input[name="password"], input#password');
+                if (!checkbox || !accountFields) return;
+
+                const usernameInput = modalContent.querySelector('input[name="username"], input#username');
+                const updateAccountFields = () => {
+                    if (checkbox.checked) {
+                        accountFields.style.display = '';
+                        if (passwordInput) passwordInput.required = true;
+                        if (usernameInput) usernameInput.required = true;
+                    } else {
+                        accountFields.style.display = 'none';
+                        if (passwordInput) passwordInput.required = false;
+                        if (usernameInput) usernameInput.required = false;
+                    }
+                };
+
+                // initialize state
+                updateAccountFields();
+                // listen for changes
+                checkbox.addEventListener('change', updateAccountFields);
+            } catch (e) {
+                console.warn('Error wiring create_account checkbox', e);
+            }
+        });
+    }
+
+    function loadAndInjectModal(tempDiv, modalElement) {
+        try {
+            // The response contains a complete modal: <div class="modal fade"> ... </div>
+            // We need to extract the modal-content and inject it into our placeholder modal
+            const fullModal = tempDiv.querySelector('.modal');
+            const sourceModalContent = fullModal ? fullModal.querySelector('.modal-content') : tempDiv.querySelector('.modal-content');
+            
+            if (!sourceModalContent) {
+                console.error('Source modal-content not found in fetched HTML', tempDiv.innerHTML);
+                const target = modalElement.querySelector('.modal-content');
+                if (target) target.innerHTML = `<div class="modal-body"><div class="alert alert-danger">Error: Form HTML malformed.</div></div>`;
+                return;
+            }
+
+            // Find the target modal-content in our placeholder modal
+            const targetModalContent = modalElement.querySelector('.modal-content');
+            if (!targetModalContent) {
+                console.error('Target modal-content not found in placeholder');
+                return;
+            }
+
+            // Replace the entire modal-content HTML with the source's modal-content
+            targetModalContent.innerHTML = sourceModalContent.innerHTML;
+            
+            // Run any inline scripts inside the injected content
+            runInlineScripts(targetModalContent);
+
+            // Call initialization if exists
+            if (typeof initStudentRecordModal === 'function') {
+                try { 
+                    setTimeout(initStudentRecordModal, 100); 
+                } catch(e){
+                    console.warn('Error calling initStudentRecordModal', e);
+                } 
+            }
+            
+            // Attach form submit handler
+            attachModalForm(modalElement);
+        } catch (e) {
+            console.error('Error injecting modal content', e);
+            const target = modalElement.querySelector('.modal-content');
+            if (target) target.innerHTML = `<div class="modal-body"><div class="alert alert-danger">Error loading content. See console.</div></div>`;
+        }
+    }
+
+    // Add modal loader
+    const addBtn = document.querySelector('[data-bs-target="#addStudentRecordModal"]');
+    if (addBtn) {
+        addBtn.addEventListener('click', function(event) {
+            const modalElement = document.getElementById('addStudentRecordModal');
+            if (!modalElement) return;
+
+            // Only load if modal content doesn't already contain a form
+            if (!modalElement.querySelector('form')) {
+                fetch('{% url "add" %}', { 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+                })
+                .then(resp => {
+                    if (!resp.ok) {
+                        throw new Error(`HTTP ${resp.status}`);
+                    }
+                    return resp.text();
+                })
+                .then(text => {
+                    const tempDiv = htmlToElement(text);
+                    loadAndInjectModal(tempDiv, modalElement);
+                })
+                .catch(err => {
+                    console.error('Error loading add modal', err);
+                    const target = modalElement.querySelector('.modal-content');
+                    if (target) target.innerHTML = `<div class="modal-body"><div class="alert alert-danger">Error loading form: ${err.message}</div></div>`;
+                });
+            }
+        });
+    }
+
+    // Edit modal loader - handle dynamic modals per student
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-bs-target^="#editStudentRecordModal"]');
+        if (!btn) return;
+
+        const modalId = btn.getAttribute('data-bs-target').replace('#', '');
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) {
+            console.error('Modal element not found:', modalId);
+            return;
+        }
+
+        // Always fetch fresh modal HTML so the form is re-initialized every time
+        e.preventDefault();
+        e.stopPropagation();
+
+        const studentId = modalId.replace('editStudentRecordModal', '');
+        // Show spinner immediately so the user sees feedback
+        try {
+            const target = modalElement.querySelector('.modal-content');
+            if (target) {
+                target.innerHTML = `
+                    <div class="modal-body text-center">
+                        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                    </div>`;
+            }
+            const bootstrapModalImmediate = new bootstrap.Modal(modalElement);
+            bootstrapModalImmediate.show();
+        } catch (e) { /* ignore show errors */ }
+
+        fetch(`/edit/${studentId}/`, { 
+            headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+        })
+        .then(resp => {
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}`);
+            }
+            return resp.text();
+        })
+        .then(text => {
+            const tempDiv = htmlToElement(text);
+            loadAndInjectModal(tempDiv, modalElement);
+            // ensure modal is shown after injection (in case it wasn't)
+            try { new bootstrap.Modal(modalElement).show(); } catch(e) { /* ignore */ }
+        })
+        .catch(err => {
+            console.error('Error loading edit modal', err);
+            const target = modalElement.querySelector('.modal-content');
+            if (target) target.innerHTML = `<div class="modal-body"><div class="alert alert-danger">Error loading form: ${err.message}</div></div>`;
+            try { new bootstrap.Modal(modalElement).show(); } catch(e) { /* ignore */ }
+        });
+    }, true); // Use capture phase to intercept before Bootstrap handles it
+
+    // Helper: attach AJAX submit handler to modal form
+    function attachModalForm(modalElement) {
+        if (!modalElement) return;
+
+        // small helper to read CSRF token from cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        const form = modalElement.querySelector('form[data-modal-form="true"]') || modalElement.querySelector('form');
+        if (!form) {
+            console.warn('No form found in modal');
+            return;
+        }
+
+        // avoid attaching multiple times
+        if (form._ajaxAttached) return;
+        form._ajaxAttached = true;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const url = form.getAttribute('action') || window.location.href;
+            const method = (form.getAttribute('method') || 'POST').toUpperCase();
+            const formData = new FormData(form);
+
+            const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken) headers['X-CSRFToken'] = csrftoken;
+
+            fetch(url, {
+                method: method,
+                headers: headers,
+                body: formData,
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) return response.json();
+                return response.text().then(html => ({ html }));
+            })
+            .then(result => {
+                if (submitBtn) submitBtn.disabled = false;
+
+                // If server returned HTML (form with validation errors), inject it
+                if (result && result.html) {
+                    const target = modalElement.querySelector('.modal-content');
+                    if (target) {
+                        target.innerHTML = result.html;
+                        runInlineScripts(target);
+                        // Reset attachment flag so new form can be reattached
+                        const newForm = modalElement.querySelector('form');
+                        if (newForm) newForm._ajaxAttached = false;
+                        attachModalForm(modalElement);
+                    }
+                    return;
+                }
+
+                const data = result;
+                if (data && data.success === true) {
+                    // Close modal and refresh
+                    try {
+                        const bsModal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                        bsModal.hide();
+                    } catch (err) { console.warn('Error hiding modal', err); }
+
+                    setTimeout(() => {
+                        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                        window.location.reload();
+                    }, 200);
+                } else {
+                    const msg = data?.message || 'Save failed. Please check your form and try again.';
+                    alert(msg);
+                }
+            })
+            .catch(err => {
+                if (submitBtn) submitBtn.disabled = false;
+                console.error('Error submitting form:', err);
+                alert('Error saving. See console for details: ' + err.message);
+            });
+        });
+
+        // Reset form fields when modal is fully hidden (covers cancel button, backdrop click, ESC)
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            try { form.reset(); } catch(e) { /* ignore */ }
+            setTimeout(() => {
+                if (!document.querySelector('.modal.show')) {
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                }
+            }, 100);
+        });
+    }
+});
+</script>
+
+<!-- Edit Student Record Modals - will be loaded dynamically -->
+{% for student in page_obj %}
+<div class="modal fade" id="editStudentRecordModal{{ student.id }}" tabindex="-1" aria-labelledby="editStudentRecordModal{{ student.id }}Label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -170,200 +512,6 @@
         </div>
     </div>
 </div>
-
-<script>
-// Load add student record modal dynamically
-document.addEventListener('DOMContentLoaded', function() {
-    const addBtn = document.querySelector('[data-bs-target="#addStudentRecordModal"]');
-    if (addBtn) {
-        addBtn.addEventListener('click', function() {
-            const modalElement = document.getElementById('addStudentRecordModal');
-
-            // Load fresh modal content each time
-            fetch('{% url "add" %}', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-
-                // Prefer a full modal structure if present, otherwise modal-content
-                const fullModal = tempDiv.querySelector('.modal');
-                let contentHtml = null;
-                if (fullModal) {
-                    const modalContent = fullModal.querySelector('.modal-content');
-                    if (modalContent) contentHtml = modalContent.innerHTML;
-                }
-                if (!contentHtml) {
-                    const modalContentDirect = tempDiv.querySelector('.modal-content');
-                    if (modalContentDirect) contentHtml = modalContentDirect.innerHTML;
-                }
-
-                const targetContent = modalElement.querySelector('.modal-content');
-                if (targetContent && contentHtml !== null) {
-                    targetContent.innerHTML = contentHtml;
-                    attachFormHandler(modalElement);
-                    // Re-initialize scripts after content is loaded
-                    if (typeof initStudentRecordModal === 'function') {
-                        setTimeout(initStudentRecordModal, 100);
-                    }
-                } else if (targetContent) {
-                    // Fallback: inject raw HTML if structure differs
-                    targetContent.innerHTML = html;
-                    attachFormHandler(modalElement);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading modal:', error);
-            });
-        });
-    }
-
-    // Handle edit student record button clicks (delegated)
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.edit-student-btn');
-        if (btn) {
-            const studentId = btn.dataset.studentId;
-            const modalElement = document.getElementById('editStudentRecordModal');
-
-            fetch(`/edit/${studentId}/`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-
-                const fullModal = tempDiv.querySelector('.modal');
-                let contentHtml = null;
-                if (fullModal) {
-                    const modalContent = fullModal.querySelector('.modal-content');
-                    if (modalContent) contentHtml = modalContent.innerHTML;
-                }
-                if (!contentHtml) {
-                    const modalContentDirect = tempDiv.querySelector('.modal-content');
-                    if (modalContentDirect) contentHtml = modalContentDirect.innerHTML;
-                }
-
-                const targetContent = modalElement.querySelector('.modal-content');
-                if (targetContent && contentHtml !== null) {
-                    targetContent.innerHTML = contentHtml;
-                    attachFormHandler(modalElement);
-                    const bootstrapModal = new bootstrap.Modal(modalElement);
-                    bootstrapModal.show();
-                } else if (targetContent) {
-                    // Fallback: inject raw HTML
-                    targetContent.innerHTML = html;
-                    attachFormHandler(modalElement);
-                    const bootstrapModal = new bootstrap.Modal(modalElement);
-                    bootstrapModal.show();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading edit modal:', error);
-            });
-        }
-    });
-
-    // Attach form submission handler to prevent normal POST and handle via AJAX
-    function attachFormHandler(modalElement) {
-        const form = modalElement.querySelector('form');
-        if (form && form.getAttribute('data-modal-form') === 'true') {
-            // Remove any previously attached handler to avoid duplicates
-            if (form._attachedHandler) {
-                form.removeEventListener('submit', form._attachedHandler);
-            }
-
-            const handler = function(e) {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const actionUrl = form.getAttribute('action');
-
-                fetch(actionUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
-                })
-                .then(async response => {
-                    // Try to parse JSON; if it isn't JSON, return text
-                    const ct = response.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) return response.json();
-                    const text = await response.text();
-                    return { success: false, message: 'Invalid server response', _raw: text };
-                })
-                .then(data => {
-                    if (data && data.success) {
-                        // If server returned HTML for the new row, insert it into the table
-                        if (data.row_html) {
-                            let tbody = document.getElementById('students-tbody');
-                            if (!tbody) {
-                                // If tbody doesn't exist, try to find the table and create tbody
-                                const table = document.querySelector('.table.table-hover');
-                                if (table) {
-                                    tbody = table.querySelector('tbody') || document.createElement('tbody');
-                                    if (!table.querySelector('tbody')) table.appendChild(tbody);
-                                    tbody.id = 'students-tbody';
-                                }
-                            }
-                            if (tbody) {
-                                tbody.insertAdjacentHTML('afterbegin', data.row_html);
-                            }
-                        }
-
-                        // If server returned modal HTML (edit modal), append it to body so edit works
-                        if (data.modal_html) {
-                            document.body.insertAdjacentHTML('beforeend', data.modal_html);
-                        }
-
-                        // Close modal
-                        const bsModal = bootstrap.Modal.getInstance(modalElement);
-                        if (bsModal) bsModal.hide();
-
-                        // Attach handlers for the newly inserted edit modal if server provided student_id
-                        if (data.student_id) {
-                            const newEditModal = document.getElementById('editStudentRecordModal' + data.student_id);
-                            if (newEditModal) {
-                                attachFormHandler(newEditModal);
-                            }
-                        }
-
-                        // Show friendly message
-                        if (data.message) {
-                            // small inline notification could go here; using alert for parity
-                            alert(data.message);
-                        }
-                    } else {
-                        // Show validation errors if provided
-                        if (data && data.errors) {
-                            let errMsg = data.message || 'Validation failed';
-                            for (const [field, messages] of Object.entries(data.errors)) {
-                                errMsg += '\n' + field + ': ' + messages.join(', ');
-                            }
-                            alert(errMsg);
-                        } else {
-                            alert((data && data.message) || 'Error saving form');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Form submission error:', error);
-                    alert('Error saving form');
-                });
-            };
-
-            form.addEventListener('submit', handler);
-            form._attachedHandler = handler;
-        }
-    }
-});
-</script>
-
+{% endfor %}
 
 {% endblock %}

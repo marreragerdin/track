@@ -131,60 +131,19 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username (for account)</label>
-                                    <input type="text" class="form-control" id="username" name="username" placeholder="Leave blank to use Student ID">
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter username">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Password (for account) <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <script>
-                        // Initialize when modal content is loaded
-                        function initStudentRecordModal() {
-                            const checkbox = document.getElementById('create_account');
-                            const accountFields = document.getElementById('account_fields');
-                            
-                            if (checkbox && accountFields) {
-                                checkbox.addEventListener('change', function() {
-                                    accountFields.style.display = this.checked ? 'block' : 'none';
-                                });
-                            }
-                            
-                            // Update section dropdown when grade level changes
-                            const gradeSelect = document.getElementById('id_grade_level_record');
-                            const sectionSelect = document.getElementById('id_section_record');
-                            
-                            if (gradeSelect && sectionSelect) {
-                                gradeSelect.addEventListener('change', function() {
-                                    fetch(`/api/sections/?grade=${encodeURIComponent(this.value)}`)
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            sectionSelect.innerHTML = '<option value="">Select Section</option>';
-                                            if (data.sections && data.sections.length > 0) {
-                                                data.sections.forEach(section => {
-                                                    const option = document.createElement('option');
-                                                    option.value = section.id;
-                                                    option.textContent = section.name;
-                                                    sectionSelect.appendChild(option);
-                                                });
-                                            }
-                                        });
-                                });
-                            }
-                        }
-                        
-                        // Run on DOMContentLoaded or immediately if already loaded
-                        if (document.readyState === 'loading') {
-                            document.addEventListener('DOMContentLoaded', initStudentRecordModal);
-                        } else {
-                            initStudentRecordModal();
-                        }
-                    </script>
+                    <!-- initialization handled by global initStudentRecordModal in student_record.html -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -194,3 +153,4 @@
         </div>
     </div>
 </div>
+

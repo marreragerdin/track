@@ -51,6 +51,17 @@ def index(request):
     return render(request, 'index.html')
 
 
+@login_required
+def student_dashboard(request):
+    """Simple student dashboard view to satisfy URL routing.
+    Renders `student_dashboard.html` if present, otherwise falls back to `index.html`.
+    """
+    try:
+        return render(request, 'student_dashboard.html')
+    except Exception:
+        return render(request, 'index.html')
+
+
 
 
 def login_view(request):
@@ -1609,15 +1620,24 @@ def add(request):
             )
             new_student.save()
 
-            # Optionally create user account if username and password provided
+            # Optionally create user account if requested
             create_account = request.POST.get('create_account', False)
             if create_account:
-                username = request.POST.get('username', str(new_student_id))
+                username = request.POST.get('username', '').strip()
                 password = request.POST.get('password', '')
 
-                if username and password:
+                # enforce explicit username (do not default to student_id)
+                if not username or not password:
+                    # For AJAX requests return a JSON error so client can surface it
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': False, 'message': 'Username and password are required to create an account.'})
+                    messages.warning(request, 'Username and password are required to create an account.')
+                else:
                     # Check if username already exists
-                    if not User.objects.filter(username=username).exists():
+                    existing_user = User.objects.filter(username=username).first()
+                    if existing_user:
+                        messages.warning(request, f'Username {username} already exists. Student record created but account not created.')
+                    else:
                         # Create User account
                         user = User.objects.create_user(
                             username=username,
@@ -1630,29 +1650,34 @@ def add(request):
                         user.save()
 
                         # Create Student model entry for backward compatibility
-                        year_level = int(grade_level.split()[-1]) if grade_level.startswith('Grade') else 7
+                        try:
+                            year_level = int(grade_level.split()[-1]) if grade_level and grade_level.startswith('Grade') else None
+                        except Exception:
+                            year_level = None
                         section_name = section_obj.name if section_obj else 'A'
 
                         Student.objects.create(
                             user=user,
-                            year_level=year_level,
+                            year_level=year_level or 7,
                             section=section_name,
                             course='N/A',
                             status=new_status
                         )
+                        # Persist the account username on the StudentRecord so edits can prefill the username
+                        try:
+                            new_student.account_username = username
+                            new_student.save()
+                        except Exception:
+                            # non-fatal; continue even if this fails (migration may not have been applied yet)
+                            pass
 
                         messages.success(request, f'Student record and account created successfully for {new_fullname}!')
-                    else:
-                        messages.warning(request, f'Username {username} already exists. Student record created but account not created.')
-                else:
-                    messages.warning(request, 'Student record created but account not created (missing username or password).')
             else:
                 messages.success(request, f'Student record created successfully for {new_fullname}!')
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': f'Student record created successfully for {new_fullname}!'})
             # Non-AJAX POST: redirect back to student record list so table refreshes
-
             return redirect('student_record')
 
     else:
@@ -1669,6 +1694,8 @@ def add(request):
         'form': form
     })
 
+@login_required
+@user_passes_test(faculty_required)
 def edit(request, id):
     student = StudentRecord.objects.get(pk=id)
 
@@ -1700,6 +1727,65 @@ def edit(request, id):
             student.status = form.cleaned_data['status']
             student.save()
 
+            # Optionally create or update user account via edit modal
+            create_account = request.POST.get('create_account', False)
+            if create_account:
+                username = request.POST.get('username', '').strip()
+                password = request.POST.get('password', '')
+
+                if not username:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': False, 'message': 'Username is required to create or update an account.'})
+                    messages.warning(request, 'Username is required to create or update an account.')
+                else:
+                    existing_user = User.objects.filter(username=username).first()
+                    if existing_user:
+                        # If user exists, update password if provided
+                        if password:
+                            existing_user.set_password(password)
+                            existing_user.is_student = True
+                            existing_user.role = 'student'
+                            existing_user.save()
+                            messages.success(request, f'Account updated for {student.fullname}')
+                        else:
+                            messages.info(request, f'Account for username {username} already exists. Password left unchanged.')
+                    else:
+                        # Create new user
+                        if not password:
+                            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                                return JsonResponse({'success': False, 'message': 'Password is required when creating a new account.'})
+                            messages.warning(request, 'Password is required when creating a new account.')
+                        else:
+                            user = User.objects.create_user(
+                                username=username,
+                                password=password,
+                                first_name=student.fullname.split()[0] if student.fullname.split() else '',
+                                last_name=' '.join(student.fullname.split()[1:]) if len(student.fullname.split()) > 1 else '',
+                            )
+                            user.is_student = True
+                            user.role = 'student'
+                            user.save()
+
+                            # Create Student model entry for backward compatibility
+                            try:
+                                year_level = int(student.grade_and_section.split()[1]) if 'Grade' in student.grade_and_section else None
+                            except Exception:
+                                year_level = None
+                            section_name = None
+                            try:
+                                parts = student.grade_and_section.split(' - ')
+                                section_name = parts[1].strip() if len(parts) > 1 else 'A'
+                            except Exception:
+                                section_name = 'A'
+
+                            Student.objects.create(
+                                user=user,
+                                year_level=year_level or 7,
+                                section=section_name,
+                                course='N/A',
+                                status=student.status
+                            )
+                            messages.success(request, f'Account created for {student.fullname}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': 'Student record updated successfully!'})
             return redirect('student_record')
@@ -1754,10 +1840,36 @@ def edit(request, id):
         else:
             form.fields['section'].queryset = Section.objects.filter(status='Active')
 
+    # Try to locate an existing user/account for this student so we can prefill username in the edit modal
+    existing_username = ''
+    account_exists = False
+    try:
+        # Most reliable source: the StudentRecord.account_username field (persisted at creation)
+        if getattr(student, 'account_username', None):
+            existing_username = student.account_username
+            account_exists = User.objects.filter(username=existing_username).exists()
+        else:
+            # Fallback: try a user with username equal to the student_id (legacy behavior)
+            candidate = User.objects.filter(username=str(student.student_id)).first()
+            if candidate:
+                existing_username = candidate.username
+                account_exists = True
+            else:
+                # Avoid broad year/section lookups; they can return other students' accounts.
+                existing_username = ''
+                account_exists = False
+    except Exception:
+        # Non-fatal - continue without account info
+        existing_username = ''
+        account_exists = False
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'modals/edit_student_record_modal.html', {
             'form': form,
-            'student': student
+            'student': student,
+            'section_name': section_name or '',
+            'existing_username': existing_username,
+            'account_exists': account_exists,
         })
 
     return render(request, 'edit.html',{
@@ -3660,4 +3772,9 @@ def edit_attendance_scores(request, student_id, subject_id):
         'attendance_records': attendance_records,
         'tab': 'attendance'
     })
+
+
+
+
+
 

@@ -21,8 +21,8 @@
     <div class="mb-4">
         <h4>{{ data.subject.name }} ({{ data.subject.code }})</h4>
         <table class="table table-striped">
-            <thead>
-                <tr>
+  <thead>
+    <tr>
                     <th>Student</th>
                     <th>Grade & Section</th>
                     {% for exam_num in data.exam_numbers %}
@@ -99,14 +99,14 @@
                 <th>Grade & Section</th>
                 <th>Subject</th>
                 <th>Exam</th>
-            </tr>
-        </thead>
+    </tr>
+  </thead>
         <tbody>
             <tr>
                 <td colspan="4" class="text-center">No exam data available. Click "Add Exam" to get started.</td>
             </tr>
-        </tbody>
-    </table>
+  </tbody>
+</table>
 {% endif %}
 
 <!-- Add Exam Modal - will be loaded dynamically -->
