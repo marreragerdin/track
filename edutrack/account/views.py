@@ -697,7 +697,8 @@ def add_user(request, role):
         form = form_class()
         # For student form, set initial section queryset
         if role == "student" and isinstance(form, StudentForm):
-            form.fields['section'].queryset = Section.objects.filter(status='Active')
+            # Start with no sections; options will be populated dynamically based on grade via JS/API
+            form.fields['section'].queryset = Section.objects.none()
 
     # Return modal template with form for AJAX requests
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -727,8 +728,28 @@ def edit_user(request, user_type, pk):
             if password:
                 user.set_password(password)
             user.save()
-            obj.year_level = request.POST.get('year_level')
-            obj.section = request.POST.get('section')
+            # Map posted grade_level (e.g. "Grade 9") back to integer year_level
+            grade_level_str = request.POST.get('grade_level', '').strip()
+            if grade_level_str:
+                if grade_level_str.lower().startswith('grade'):
+                    try:
+                        obj.year_level = int(grade_level_str.split()[-1])
+                    except (ValueError, IndexError):
+                        pass
+                else:
+                    try:
+                        obj.year_level = int(grade_level_str)
+                    except ValueError:
+                        pass
+            # Section is posted as Section PK from dropdown; resolve to name
+            section_val = request.POST.get('section', '').strip()
+            if section_val:
+                try:
+                    sec = Section.objects.get(pk=int(section_val))
+                    obj.section = sec.name
+                except (Section.DoesNotExist, ValueError):
+                    # Fallback: store raw value
+                    obj.section = section_val
             obj.status = request.POST.get('status')
             obj.save()
         elif user_type == 'faculty':
@@ -1127,6 +1148,7 @@ def academic_setup(request):
     Modal forms post with hidden 'tab' = name of tab
     """
     tab = request.GET.get('tab', request.POST.get('tab', 'school_year'))
+    search = request.GET.get('search', '').strip()
     # Prepare common context entries
     # Years list for School Year modal: from 2020 up to current year + 5
     import datetime
@@ -1265,25 +1287,53 @@ def academic_setup(request):
         else:
             messages.error(request, "Unknown action.")
     else:
-        # GET - build forms & object lists per tab
+        # GET - build forms & object lists per tab, with optional search
         if tab == 'school_year':
             form = SchoolYearForm()
             objects = SchoolYear.objects.all().order_by('-year')
+            if search:
+                objects = objects.filter(Q(year__icontains=search) | Q(status__icontains=search))
         elif tab == 'subject':
             form = SubjectForm()
             objects = Subject.objects.all()
+            if search:
+                objects = objects.filter(
+                    Q(code__icontains=search) |
+                    Q(name__icontains=search) |
+                    Q(department__icontains=search)
+                )
         elif tab == 'section':
             form = SectionForm()
             objects = Section.objects.all()
+            if search:
+                objects = objects.filter(
+                    Q(grade__icontains=search) |
+                    Q(name__icontains=search) |
+                    Q(adviser__icontains=search)
+                )
         elif tab == 'faculty':
             form = FacultyAssignmentForm()
-            objects = FacultyAssignment.objects.all()
+            objects = FacultyAssignment.objects.select_related('faculty').prefetch_related('subjects')
+            if search:
+                objects = objects.filter(
+                    Q(faculty__first_name__icontains=search) |
+                    Q(faculty__last_name__icontains=search) |
+                    Q(subjects__name__icontains=search) |
+                    Q(status__icontains=search)
+                ).distinct()
         elif tab == 'grading':
             form = GradingComponentForm()
             objects = GradingComponent.objects.all()
+            if search:
+                objects = objects.filter(
+                    Q(component__icontains=search) |
+                    Q(status__icontains=search)
+                )
         else:
             form = SchoolYearForm()
             objects = SchoolYear.objects.all()
+            if search:
+                objects = objects.filter(Q(year__icontains=search) | Q(status__icontains=search))
 
     # Pagination
     page = request.GET.get('page', 1)
@@ -1302,6 +1352,7 @@ def academic_setup(request):
         'years': years,
         'faculties': faculties,
         'subjects_qs': subjects_qs,
+        'search': search,
     }
     return render(request, 'academic_setup.html', context)
 
@@ -1439,10 +1490,11 @@ def delete_section(request, pk):
     messages.success(request, "Section deleted successfully!")
     return redirect('academic_setup')
 
-def delete_faculty(request, pk):
+def delete_faculty_assignment(request, pk):
+    """Delete a FacultyAssignment row from Academic Setup → Faculty tab."""
     obj = get_object_or_404(FacultyAssignment, pk=pk)
     obj.delete()
-    messages.success(request, "Faculty deleted successfully!")
+    messages.success(request, "Faculty assignment deleted successfully!")
     return redirect('academic_setup')
 
 def delete_grading(request, pk):
@@ -1556,7 +1608,17 @@ from django.urls import reverse
 @user_passes_test(faculty_required)
 def record(request):
     """Student record view - accessible by faculty and admin"""
+    search = request.GET.get('search', '').strip()
     accounts = StudentRecord.objects.all()
+    if search:
+        accounts = accounts.filter(
+            Q(student_id__icontains=search) |
+            Q(fullname__icontains=search) |
+            Q(grade_and_section__icontains=search) |
+            Q(gender__icontains=search) |
+            Q(parent__icontains=search) |
+            Q(status__icontains=search)
+        )
 
     # Pagination
     page = request.GET.get('page', 1)
@@ -1567,7 +1629,7 @@ def record(request):
     except:
         page_obj = paginator.page(1)
 
-    return render(request, 'student_record.html', {'page_obj': page_obj})
+    return render(request, 'student_record.html', {'page_obj': page_obj, 'search': search})
 
 def view_student(request, id):
     student = StudentRecord.objects.get(pk=id)
@@ -1928,7 +1990,15 @@ def assign(request):
 from .models import AssignedSubject
 
 def assign_subject(request):
-    assigned_subjects = AssignedSubject.objects.all()
+    search = request.GET.get('search', '').strip()
+    assigned_subjects = AssignedSubject.objects.select_related('subject').all()
+    if search:
+        assigned_subjects = assigned_subjects.filter(
+            Q(subject__name__icontains=search) |
+            Q(subject__code__icontains=search) |
+            Q(grade_level__icontains=search) |
+            Q(status__icontains=search)
+        )
 
     # Pagination
     page = request.GET.get('page', 1)
@@ -1940,7 +2010,8 @@ def assign_subject(request):
         page_obj = paginator.page(1)
 
     context = {
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'search': search,
     }
     return render(request, 'assign_subject.html', context)
 
@@ -2539,6 +2610,7 @@ from django.utils import timezone
 @user_passes_test(faculty_required)
 def score(request):
     """Score view - accessible by faculty and admin"""
+    search = request.GET.get('search', '').strip()
     # Filter by faculty assigned subjects if user is faculty
     if request.user.role == 'faculty':
         # Get assigned subjects for this faculty
@@ -2707,6 +2779,13 @@ def score(request):
                 }
             )
 
+    if search:
+        students = students.filter(
+            Q(fullname__icontains=search)
+            | Q(grade_and_section__icontains=search)
+            | Q(status__icontains=search)
+        )
+
     # Pagination for students
     page = request.GET.get('page', 1)
     per_page = 15  # Increased to reduce pagination when not needed
@@ -2808,6 +2887,7 @@ def score(request):
             'student_score_data': paginated_student_score_data,
             'subjects_with_scores': subjects_with_scores,
             'tab': 'score',
+            'search': search,
         },
     )
 

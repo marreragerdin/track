@@ -230,6 +230,7 @@ class RecordForm(forms.Form):
     )
     grade_level = forms.ChoiceField(
         choices=[
+            ('', '---------'),
             ('Grade 7', 'Grade 7'),
             ('Grade 8', 'Grade 8'),
             ('Grade 9', 'Grade 9'),

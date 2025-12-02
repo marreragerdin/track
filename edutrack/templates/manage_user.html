@@ -4,147 +4,748 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <h2>User Management</h2>
+<style>
+    body {
+        font-family: Inter, Poppins, sans-serif;
+    }
 
+    .user-folder-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background: transparent;
+    }
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs" id="userTab" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'students' %}active{% endif %}" href="?tab=students">Students</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'faculty' %}active{% endif %}" href="?tab=faculty">Faculty</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'admins' %}active{% endif %}" href="?tab=admins">Admins</a>
-        </li>
-    </ul>
+    .user-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-  <!-- Filters & Search -->
-<form method="get" class="mt-3 d-flex gap-2 align-items-center">
-    <input type="hidden" name="tab" value="{{ tab }}">
-    <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ search }}">
+    .user-heading h2 {
+        color: #152E21;
+        font-weight: 500;
+    }
 
-    {% if tab == 'students' %}
+    .user-add-btn {
+        border-radius: 999px;
+        background: #b4d96b;
+        color: #152E21;
+        border: none;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
 
+    /* Tabs (folder-style) */
+    .tabs {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .tabs.group:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .tabs li {
+        float: left;
+        position: relative;
+    }
+    .tabs a {
+        float: left;
+        padding: 0.7rem 40px;
+        text-decoration: none;
+        color: #152E21;
+        background: #d9d9d9;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    .tabs .active a {
+        background: #F6F5AE;
+        color: #152E21;
+    }
+    .tabs li:before,
+    .tabs li:after,
+    .tabs li a:before,
+    .tabs li a:after {
+        position: absolute;
+        bottom: 0;
+    }
+    .tabs li:before,
+    .tabs li:after {
+        background: #ddc385;
+        width: 10px;
+        height: 10px;
+    }
+    .tabs li:before { left: -10px; }
+    .tabs li:after { right: -10px; }
+    .tabs li a:after,
+    .tabs li a:before {
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #222;
+        z-index: 2;
+    }
+    .tabs .active a:after,
+    .tabs .active a:before {
+        background: #F6F5AE;
+    }
+    .tabs li:first-child.active a:before,
+    .tabs li:last-child.active a:after {
+        background: #222;
+    }
+    .tabs li a:before { left: -20px; }
+    .tabs li a:after { right: -20px; }
 
-        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalStudent">Add New Student</button>
-
-    {% elif tab == 'faculty' %}
-
-        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalFaculty">Add New Faculty</button>
-
-    {% elif tab == 'admins' %}
-
-        <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#addUserModalAdmin">Add New Admin</button>
-    {% endif %}
-
-</form>
-
-
-
-    </form>
-
-    <!-- Table -->
-    <div class="table-responsive mt-3">
-    <table class="table table-striped" id="userTable">
-        <thead>
-        {% if tab == 'students' %}
-            <tr>
-                <th>ID</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th><th>Actions</th>
-            </tr>
-        {% elif tab == 'faculty' %}
-            <tr>
-                <th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Subjects</th><th>Status</th><th>Actions</th>
-            </tr>
-        {% else %}
-            <tr>
-                <th>Role</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th>
-            </tr>
-        {% endif %}
-        </thead>
-        <tbody>
-{% if tab == 'students' %}
-    {% for s in page_obj %}
-    <tr>
-        <td>{{ s.id }}</td>
-        <td>{{ s.user.get_full_name }}</td>
-        <td>{{ s.year_level }}</td>
-        <td>{{ s.section }}</td>
-        <td>{{ s.status }}</td>
-        <td>
-            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal{{ s.id }}">Edit</button>
-            <a href="{% url 'delete_student' s.id %}" class="btn btn-sm btn-danger">Delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-
-{% elif tab == 'faculty' %}
-    {% for f in page_obj %}
-    <tr>
-        <td>{{ f.id }}</td>
-        <td>{{ f.user.get_full_name }}</td>
-        <td>{{ f.user.email }}</td>
-        <td>{{ f.department }}</td>
-        <td>{% for sub in f.subjects.all %}{{ sub.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
-        <td>{{ f.status }}</td>
-        <td>
-            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editFacultyModal{{ f.id }}">Edit</button>
-            <a href="{% url 'delete_faculty' f.id %}" class="btn btn-sm btn-danger">Delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-
-{% elif tab == 'admins' %}
-    {% for a in page_obj %}
-    <tr>
-        <td>{{ a.id }}</td>
-        <td>{{ a.get_full_name }}</td>
-        <td>{{ a.email }}</td>
-        <td>{{ a.status }}</td>
-        <td>
-            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ a.id }}">Edit</button>
-            <a href="{% url 'delete_admin' a.id %}" class="btn btn-sm btn-danger">Delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-{% endif %}
-
-
-
-        </tbody>
-    </table>
-    </div>
+    .tab-content {
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
     
-    <!-- Pagination -->
-    {% if page_obj %}
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">Previous</a>
-                </li>
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+
+    /* Search row */
+    .tab-search {
+        background: #F6F5AE;
+        display: flex;
+        padding: 20px;
+        gap: 8px;
+        align-items: center;
+    }
+    .tab-search input[type="text"] {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #ccc;
+        margin: 4px;
+        font-family: Poppins, sans-serif;
+        flex: 0.4;
+    }
+    .search-btn {
+        background: #152E21;
+        color: #F6F5AE;
+        border: none;
+        border-radius: 999px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+    .search-btn:hover {
+        background: #1a3a28;
+    }
+
+    .user-table-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .user-table thead {
+        background: #D9D9D9;
+        color: #152E21;
+        font-weight: bold;
+    }
+    .user-table thead th {
+        padding: 20px;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .user-table tbody td {
+        padding: 20px;
+        font-size: 0.8rem;
+        background-color: #FFFFFF;
+        max-width: 180px;
+        word-wrap: break-word;
+        white-space: normal;
+        color: #1E1E1E
+    }
+    .user-table tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+    .user-table tbody td.actions-cell {
+        white-space: nowrap;
+        max-width: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        padding: 0;
+        border-width: 2px;
+        border-style: solid;
+        background: #fff;
+        cursor: pointer;
+    }
+    .btn-icon-edit {
+        background-color: #B2C85C;
+        color: #1E1E1E;
+        border: none;
+    }
+    .btn-icon-edit:hover {
+        background: #f5fadf;
+    }
+    .btn-icon-delete {
+        background-color: #EF5353;
+        color: #1E1E1E;
+        border: none;
+    }
+    .btn-icon-delete:hover {
+        background: #ffe5e1;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-top: 2rem;
+    }
+    .pagination .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        border: none;
+        padding: 10px 18px;
+        margin: 0 4px;
+        border-radius: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1a3a28;
+        color: #F6F5AE;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        font-weight: 600;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .user-heading {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .user-add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .tabs a {
+            padding: 0.6rem 20px;
+            font-size: 0.85rem;
+        }
+        .tab-search {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-search input[type="text"] {
+            flex: 1 1 100%;
+            margin-bottom: 8px;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .user-table-wrapper {
+            overflow-x: auto;
+        }
+        .user-table {
+            min-width: 600px;
+        }
+        .user-table thead th,
+        .user-table tbody td {
+            font-size: 0.75rem;
+        }
+        .btn-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* Card Styles for Mobile */
+    .user-cards-wrapper {
+        display: none;
+    }
+    .user-card {
+        background: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .user-card-row:last-child {
+        border-bottom: none;
+    }
+    .user-card-label {
+        font-weight: 600;
+        color: #152E21;
+        font-size: 0.85rem;
+    }
+    .user-card-value {
+        color: #1E1E1E;
+        font-size: 0.85rem;
+        text-align: right;
+    }
+    .user-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+    border-top: none;
+    }
+
+    @media (max-width: 600px) {
+        .user-folder-card {
+            gap: 1rem;
+        }
+        .user-heading h2 {
+            font-size: 1.3rem;
+        }
+
+        .tabs a {
+            padding: 0.6rem 10.5px;
+            font-size: 0.8rem;
+        }
+
+        .tab-search {
+            padding: 12px;
+        }
+        /* Hide table on mobile */
+        .user-table-wrapper {
+            display: none;
+        }
+        /* Show cards on mobile */
+        .user-cards-wrapper {
+            display: block;
+            padding: 12px;
+            background: #FFFFFF;
+        }
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            min-width: 38px;
+            margin: 0 2px;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="user-folder-card">
+        <div class="user-heading">
+            <h2>Manage Users</h2>
+
+            {% if tab == 'students' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addUserModalStudent">
+                    <i class="fas fa-user"></i> Add User
+                </button>
+            {% elif tab == 'faculty' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addUserModalFaculty">
+                    <i class="fas fa-user"></i> Add User
+                </button>
+            {% elif tab == 'admins' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addUserModalAdmin">
+                    <i class="fas fa-user"></i> Add User
+                </button>
             {% endif %}
-            
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        </div>
+
+        <div class="tab-content">
+            <ul class="tabs group">
+                <li class="{% if tab == 'students' %}active{% endif %}">
+                    <a href="?tab=students{% if search %}&search={{ search }}{% endif %}">Students</a>
+                </li>
+                <li class="{% if tab == 'faculty' %}active{% endif %}">
+                    <a href="?tab=faculty{% if search %}&search={{ search }}{% endif %}">Faculty</a>
+                </li>
+                <li class="{% if tab == 'admins' %}active{% endif %}">
+                    <a href="?tab=admins{% if search %}&search={{ search }}{% endif %}">Admins</a>
+                </li>
+            </ul>
+
+            <div class="user-data-table">
+                <!-- Students -->
+                <div id="students" class="tab-pane {% if tab == 'students' %}active{% endif %}">
+                    <form method="get" class="tab-search" id="searchFormStudents">
+                        <input type="hidden" name="tab" value="students">
+                        <input type="text" name="search" placeholder="Search students..." value="{{ search }}" id="searchInputStudents">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Year</th>
+                                    <th>Section</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'students' %}
+                                    {% for s in page_obj %}
+                                        <tr>
+                                            <td>{{ s.id }}</td>
+                                            <td>{{ s.user.get_full_name }}</td>
+                                            <td>{{ s.year_level }}</td>
+                                            <td>{{ s.section }}</td>
+                                            <td>{{ s.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editStudentModal{{ s.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_student' s.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6">No students found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'students' %}
+                            {% for s in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">ID</span>
+                                        <span class="user-card-value">{{ s.id }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Name</span>
+                                        <span class="user-card-value">{{ s.user.get_full_name }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Year</span>
+                                        <span class="user-card-value">{{ s.year_level }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Section</span>
+                                        <span class="user-card-value">{{ s.section }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ s.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editStudentModal{{ s.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_student' s.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No students found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Faculty -->
+                <div id="faculty" class="tab-pane {% if tab == 'faculty' %}active{% endif %}">
+                    <form method="get" class="tab-search" id="searchFormFaculty">
+                        <input type="hidden" name="tab" value="faculty">
+                        <input type="text" name="search" placeholder="Search faculty..." value="{{ search }}" id="searchInputFaculty">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'faculty' %}
+                                    {% for f in page_obj %}
+                                        <tr>
+                                            <td>{{ f.id }}</td>
+                                            <td>{{ f.user.get_full_name }}</td>
+                                            <td>{{ f.user.email }}</td>
+                                            <td>{{ f.department }}</td>
+                                            <td>{{ f.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editFacultyModal{{ f.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_faculty' f.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6">No faculty found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'faculty' %}
+                            {% for f in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">ID</span>
+                                        <span class="user-card-value">{{ f.id }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Name</span>
+                                        <span class="user-card-value">{{ f.user.get_full_name }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Email</span>
+                                        <span class="user-card-value">{{ f.user.email }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Department</span>
+                                        <span class="user-card-value">{{ f.department }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ f.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editFacultyModal{{ f.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_faculty' f.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No faculty found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Admins -->
+                <div id="admins" class="tab-pane {% if tab == 'admins' %}active{% endif %}">
+                    <form method="get" class="tab-search" id="searchFormAdmins">
+                        <input type="hidden" name="tab" value="admins">
+                        <input type="text" name="search" placeholder="Search admins..." value="{{ search }}" id="searchInputAdmins">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'admins' %}
+                                    {% for a in page_obj %}
+                                        <tr>
+                                            <td>{{ a.role|title }}</td>
+                                            <td>{{ a.get_full_name }}</td>
+                                            <td>{{ a.email }}</td>
+                                            <td>{{ a.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editAdminModal{{ a.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_admin' a.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5">No admins found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'admins' %}
+                            {% for a in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Role</span>
+                                        <span class="user-card-value">{{ a.role|title }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Name</span>
+                                        <span class="user-card-value">{{ a.get_full_name }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Email</span>
+                                        <span class="user-card-value">{{ a.email }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ a.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editAdminModal{{ a.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_admin' a.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No admins found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-3">
+                {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?tab={{ tab }}&page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">{{ num }}</a>
+                        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
                     </li>
                 {% endif %}
-            {% endfor %}
-            
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if dept_filter %}&department={{ dept_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">Next</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab={{ tab }}&page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Add User Modals - will be loaded dynamically -->
@@ -240,6 +841,52 @@
 {% endif %}
 
 <script>
+function initStudentSectionControls(modalElement) {
+    if (!modalElement) return;
+    const gradeSelect = modalElement.querySelector('#id_grade_level, select[name="grade_level"]');
+    const sectionSelect = modalElement.querySelector('#id_section, select[name="section"]');
+    if (!gradeSelect || !sectionSelect) return;
+
+    function loadSections(grade, currentSectionName) {
+        if (!grade) {
+            sectionSelect.innerHTML = '<option value="">-- Select section --</option>';
+            return;
+        }
+        fetch(`/api/sections/?grade=${encodeURIComponent(grade)}`)
+            .then(response => response.json())
+            .then(data => {
+                sectionSelect.innerHTML = '<option value="">-- Select section --</option>';
+                if (data.sections) {
+                    data.sections.forEach(sec => {
+                        const opt = document.createElement('option');
+                        opt.value = sec.id;
+                        opt.textContent = sec.name;
+                        if (currentSectionName && sec.name === currentSectionName) {
+                            opt.selected = true;
+                        }
+                        sectionSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading sections:', error);
+            });
+    }
+
+    const initialGrade = gradeSelect.value;
+    const currentSectionName = sectionSelect.getAttribute('data-current-section') || '';
+    if (initialGrade) {
+        loadSections(initialGrade, currentSectionName);
+    }
+
+    gradeSelect.addEventListener('change', function() {
+        const grade = this.value;
+        // On change, clear stored current-section so new grade controls selection
+        sectionSelect.setAttribute('data-current-section', '');
+        loadSections(grade, '');
+    });
+}
+
 // Load add user modals dynamically
 document.addEventListener('DOMContentLoaded', function() {
     const modalButtons = {
@@ -272,12 +919,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             const modalContent = fullModal.querySelector('.modal-content');
                             if (modalContent) {
                                 modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                // Initialize dynamic section filtering for student add form
+                                if (role === 'student') {
+                                    initStudentSectionControls(modalElement);
+                                }
                             }
                         } else {
                             // Fallback: try to find modal-content directly
                             const modalContent = tempDiv.querySelector('.modal-content');
                             if (modalContent) {
                                 modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                if (role === 'student') {
+                                    initStudentSectionControls(modalElement);
+                                }
                             }
                         }
                     })
@@ -326,11 +980,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             const modalContent = fullModal.querySelector('.modal-content');
                             if (modalContent) {
                                 modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                if (userType === 'student') {
+                                    initStudentSectionControls(modalElement);
+                                }
                             }
                         } else {
                             const modalContent = tempDiv.querySelector('.modal-content');
                             if (modalContent) {
                                 modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                if (userType === 'student') {
+                                    initStudentSectionControls(modalElement);
+                                }
                             }
                         }
                     })
@@ -340,6 +1000,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    });
+
+    // Handle empty search - remove search parameter if field is empty
+    const searchForms = ['searchFormStudents', 'searchFormFaculty', 'searchFormAdmins'];
+    searchForms.forEach(function(formId) {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const searchInput = form.querySelector('input[name="search"]');
+                if (searchInput && searchInput.value.trim() === '') {
+                    e.preventDefault();
+                    const tab = form.querySelector('input[name="tab"]').value;
+                    window.location.href = '?tab=' + tab;
+                }
+            });
+        }
     });
 });
 </script>

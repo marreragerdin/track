@@ -3,43 +3,373 @@
 {% block title %}Student Record{% endblock %}
 
 {% block content %}
-    <h2>Student Record</h2>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentRecordModal">Add Student</button>
 
-<div class = "table-responsive">
-<table class="table table-hover">
-  <tbody>
-    <tr>
-      <th scope="col">Student ID</th>
-      <th scope="col">Fullname</th>
-      <th scope="col">Grade & Section</th>
-      <th scope="col">Gender</th>
-       <th scope="col">Age</th>
-      <th scope="col">Address</th>
-      <th scope="col">Parent/Guardian</th>
-      <th scope="col">Parent/Guardian Contact</th>
-       <th scope="col">Status</th>
-      <th scope="col">Actions</th>
-    </tr>
-  </tbody>
-  {% for student in page_obj %}
-  <tr>
-    <td>{{ student.student_id}}</td>
-    <td>{{ student.fullname}}</td>
-    <td>{{ student.grade_and_section}}</td>
-    <td>{{ student.gender}}</td>
-    <td>{{ student.age}}</td>
-    <td>{{ student.address}}</td>
-    <td>{{ student.parent}}</td>
-    <td>{{ student.parent_contact}}</td>
-    <td>{{ student.status}}</td>
-    <td>
-<button type="button"
-        class="btn btn-success me-1"
-        data-bs-toggle="modal"
-        data-bs-target="#mymodal{{student.id}}">
-  <i class="fa-solid fa-circle-info"></i>
-</button>
+<style>
+    body {
+        font-family: Inter, Poppins, sans-serif;
+    }
+
+    .user-folder-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background: transparent;
+    }
+
+    .user-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-heading h2 {
+        color: #152E21;
+        font-weight: 500;
+    }
+
+.tab-search {
+    background: #F6F5AE;
+    display: flex;
+    padding: 20px;
+    gap: 8px;
+    align-items: center;
+    margin-top: 1rem;
+}
+.tab-search input[type="text"] {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    margin: 4px;
+    font-family: Poppins, sans-serif;
+    flex: 0.4;
+}
+.search-btn {
+    background: #152E21;
+    color: #F6F5AE;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.search-btn:hover {
+    background: #1a3a28;
+}
+
+    .user-add-btn {
+        border-radius: 999px;
+        background: #b4d96b;
+        color: #152E21;
+        border: none;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        cursor: pointer;
+    }
+
+    .user-table-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .user-table thead {
+        background: #D9D9D9;
+        color: #152E21;
+        font-weight: bold;
+    }
+    .user-table thead th {
+        padding: 20px;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .user-table tbody td {
+        padding: 16px;
+        font-size: 0.8rem;
+        background-color: #FFFFFF;
+        word-wrap: break-word;
+        white-space: normal;
+        color: #1E1E1E;
+    }
+    .user-table thead th:nth-child(1),
+    .user-table tbody td:nth-child(1) {
+        width: 110px;
+    }
+    .user-table thead th:nth-child(2),
+    .user-table tbody td:nth-child(2) {
+        width: 150px;
+    }
+
+    .user-table thead th:nth-child(6),
+    .user-table tbody td:nth-child(6) {
+        width: 150px;
+    }
+
+
+    .user-table tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+    .user-table tbody td.actions-cell {
+        white-space: nowrap;
+        max-width: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        padding: 0;
+        border: none;
+        background: #fff;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-icon-view {
+        background-color: #4CAF50;
+        color: #1E1E1E;
+    }
+    .btn-icon-view:hover {
+        background: #e8f5e9;
+    }
+    .btn-icon-edit {
+        background-color: #B2C85C;
+        color: #1E1E1E;
+    }
+    .btn-icon-edit:hover {
+        background: #f5fadf;
+    }
+    .btn-icon-delete {
+        background-color: #EF5353;
+        color: #1E1E1E;
+    }
+    .btn-icon-delete:hover {
+        background: #ffe5e1;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-top: 2rem;
+    }
+    .pagination .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        border: none;
+        padding: 10px 18px;
+        margin: 0 4px;
+        border-radius: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1a3a28;
+        color: #F6F5AE;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        font-weight: 600;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .user-heading {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .user-add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .tab-search {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-search input[type="text"] {
+            flex: 1 1 100%;
+            margin-bottom: 8px;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .user-table-wrapper {
+            overflow-x: auto;
+        }
+        .user-table {
+            min-width: 600px;
+        }
+        .user-table thead th,
+        .user-table tbody td {
+            font-size: 0.75rem;
+        }
+        .btn-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* Card Styles for Mobile */
+    .user-cards-wrapper {
+        display: none;
+    }
+    .user-card {
+        background: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .user-card-row:last-child {
+        border-bottom: none;
+    }
+    .user-card-label {
+        font-weight: 600;
+        color: #152E21;
+        font-size: 0.85rem;
+    }
+    .user-card-value {
+        color: #1E1E1E;
+        font-size: 0.85rem;
+        text-align: right;
+    }
+    .parent-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .parent-details small {
+        color: #666;
+        font-size: 0.75rem;
+    }
+    .user-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: none;
+    }
+
+    @media (max-width: 767px) {
+        .user-folder-card {
+            gap: 1rem;
+        }
+        .user-heading h2 {
+            font-size: 1.3rem;
+        }
+        /* Hide table on mobile */
+        .user-table-wrapper {
+            display: none;
+        }
+        /* Show cards on mobile */
+        .user-cards-wrapper {
+            display: block;
+            padding: 12px;
+            background: #FFFFFF;
+        }
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            min-width: 38px;
+            margin: 0 2px;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="user-folder-card">
+        <div class="user-heading">
+            <h2>Student Record</h2>
+            <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addStudentRecordModal">
+                <i class="fas fa-user-plus"></i> Add Student
+            </button>
+        </div>
+
+        <div class="user-data-table">
+            <form method="get" class="tab-search">
+                <input type="text" name="search" placeholder="Search students..." value="{{ search }}">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+
+            <div class="user-table-wrapper">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Grade & Section</th>
+                            <th>Gender & Age</th>
+                            <th>Address</th>
+                            <th>Parent & Contact</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in page_obj %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.fullname }}</td>
+                            <td>{{ student.grade_and_section }}</td>
+                            <td>{{ student.gender }}, {{ student.age }}</td>
+                            <td>{{ student.address }}</td>
+                            <td>
+                                <div class="parent-details">
+                                    <span>{{ student.parent }}</span>
+                                    <small>{{ student.parent_contact }}</small>
+                                </div>
+                            </td>
+                            <td>{{ student.status }}</td>
+                            <td class="actions-cell">
+                            <div class="action-buttons">
+                                <button type="button" class="btn-icon btn-icon-view"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#mymodal{{student.id}}"
+                                        title="View">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
 
 <!--      modal view student-->
   <div class="modal" id ="mymodal{{student.id}}" tabindex="-1" aria-labelledby="mymodalLabel{{student.id}}" aria-hidden="true">
@@ -55,14 +385,14 @@
       </div>
       <div class="modal-body">
         <ul class="list-unstyled">
-          <li>Student ID: <strong> {{ student.student_id}} </strong></li>
-          <li>Fullname: <strong> {{ student.fullname}}</strong></li>
+          <li>ID: <strong> {{ student.student_id}} </strong></li>
+          <li>Full Name: <strong> {{ student.fullname}}</strong></li>
           <li>Grade & Section: <strong> {{ student.grade_and_section}}</strong></li>
           <li>Gender: <strong> {{ student.gender}}</strong></li>
           <li>Age: <strong> {{ student.age}}</strong></li>
           <li>Address: <strong> {{ student.address}}</strong></li>
-          <li>Parent/Guardian: <strong> {{ student.parent}}</strong></li>
-          <li>Parent/Guardian Contact: <strong> {{ student.parent_contact}}</strong></li>
+          <li>Guardian: <strong> {{ student.parent}}</strong></li>
+          <li>Guardian Contact: <strong> {{ student.parent_contact}}</strong></li>
           <li>Status: <strong> {{ student.status}}</strong></li>
         </ul>
       </div>
@@ -73,12 +403,6 @@
   </div>
 </div>
 <!--      modal delete student-->
-      <button type="button" class="btn btn-warning me-1" data-bs-toggle="modal" data-bs-target="#editStudentRecordModal{{ student.id }}" data-modal-load="{% url 'edit' student.id %}">
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
-      <button type="button" class="btn btn-danger" data-bs-toggle = "modal" data-bs-target="#delete{{student.id}}">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
       <div class="modal" id ="delete{{student.id}}" tabindex="-1" aria-labelledby="mymodalLabel{{student.id}}" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -105,19 +429,96 @@
     </div>
   </div>
 </div>
+                                <button type="button" class="btn-icon btn-icon-edit"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editStudentRecordModal{{ student.id }}"
+                                        data-modal-load="{% url 'edit' student.id %}"
+                                        title="Edit">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </button>
+                                <button type="button" class="btn-icon btn-icon-delete"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#delete{{student.id}}"
+                                        title="Delete">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-    </td>
-  </tr>
-  {%endfor%}
-</table>
+            <!-- Mobile Cards View -->
+            <div class="user-cards-wrapper">
+                {% for student in page_obj %}
+                    <div class="user-card">
+                        <div class="user-card-row">
+                            <span class="user-card-label">Student ID</span>
+                            <span class="user-card-value">{{ student.student_id }}</span>
+                        </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Full Name</span>
+                        <span class="user-card-value">{{ student.fullname}}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Grade & Section</span>
+                        <span class="user-card-value">{{ student.grade_and_section}}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Gender & Age</span>
+                        <span class="user-card-value">{{ student.gender }}, {{ student.age}}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Address</span>
+                        <span class="user-card-value">{{ student.address}}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Parent & Contact</span>
+                        <span class="user-card-value parent-details">
+                            <span>{{ student.parent}}</span>
+                            <small>{{ student.parent_contact}}</small>
+                        </span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-label">Status</span>
+                        <span class="user-card-value">{{ student.status}}</span>
+                    </div>
+                    <div class="user-card-actions">
+                        <button type="button" class="btn-icon btn-icon-view"
+                                data-bs-toggle="modal"
+                                data-bs-target="#mymodal{{student.id}}"
+                                title="View">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                        <button type="button" class="btn-icon btn-icon-edit"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editStudentRecordModal{{ student.id }}"
+                                data-modal-load="{% url 'edit' student.id %}"
+                                title="Edit">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" class="btn-icon btn-icon-delete"
+                                data-bs-toggle="modal"
+                                data-bs-target="#delete{{student.id}}"
+                                title="Delete">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
 <!-- Pagination -->
 {% if page_obj %}
-<nav aria-label="Page navigation" class="mt-3">
-    <ul class="pagination justify-content-center">
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-3">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
             </li>
         {% endif %}
         
@@ -126,20 +527,19 @@
                 <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
             </li>
         {% endif %}
     </ul>
 </nav>
 {% endif %}
-</div>
 
 
 <!-- Add Student Modal - will be loaded dynamically -->

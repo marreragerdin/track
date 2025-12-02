@@ -1,0 +1,108 @@
+{% load static %}
+
+<nav id="sidebar">
+    <ul>
+        <li>
+            <a href="{% if user.role == 'admin' %}{% url 'adminpage' %}{% elif user.role == 'faculty' %}{% url 'faculty' %}{% elif user.role == 'student' %}{% url 'student_dashboard' %}{% else %}#{% endif %}" class="logo">
+                <img src="{% static 'img/LOGO_EduTrack-Light.png' %}" alt="EduTrack Logo">
+            </a>
+            <button onclick="toggleSidebar()" id="toggle-btn" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                    <path d="M440-240 200-480l240-240 56 56-183 184 183 184-56 56Zm264 0L464-480l240-240 56 56-183 184 183 184-56 56Z"/>
+                </svg>
+            </button>
+        </li>
+
+        {% if user.role == 'admin' %}
+        <!-- Admin Dashboard -->
+        <li class="{% if request.resolver_match.url_name == 'adminpage' %}active{% endif %}">
+            <a href="{% url 'adminpage' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                    <path d="M275-274h90v-291h-90v291Zm160 0h90v-412h-90v412Zm160 0h90v-171h-90v171ZM212-76q-57.12 0-96.56-39.44Q76-154.88 76-212v-536q0-57.13 39.44-96.56Q154.88-884 212-884h536q57.13 0 96.56 39.44Q884-805.13 884-748v536q0 57.12-39.44 96.56Q805.13-76 748-76H212Z"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- Admin Manage dropdown -->
+        {% with current_url=request.resolver_match.url_name %}
+        {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}
+            <li class="dropdown-open">
+        {% else %}
+            <li>
+        {% endif %}
+            <button onclick="toggleSubMenu(this)" class="dropdown-btn {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}rotate{% endif %}" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                    <path d="M851-315v-226L545-374q-31.28 16-65.14 16.5T415-374L98-548q-17-9-26.5-24.92-9.5-15.93-9.5-34 0-18.08 9.38-33.71Q80.75-656.25 98-666l317-173q16-8 32.21-12.5 16.2-4.5 32.79-4.5t32.79 4.5Q529-847 545-839l391 213q17 8 26.5 24t9.5 35.3V-314q0 24.6-17.7 42.3Q936.6-254 912-254q-24.6 0-42.8-18.2Q851-290.4 851-315ZM415-122l-170-91q-33.19-17.98-52.1-49.99Q174-295 174-332v-110l241 130q31.28 17 65.14 17T545-312l241-130v110q0 37-18.9 69.01Q748.19-230.98 715-213l-170 91q-16 9-32.21 12.5-16.2 3.5-32.79 3.5t-32.79-3.5Q431-113 415-122Z"/>
+                </svg>
+                <span>Manage</span>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                    <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/>
+                </svg>
+            </button>
+            <ul class="sub-menu {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}show{% endif %}">
+                <div>
+                    <li><a href="{% url 'manage_user' %}" class="{% if current_url == 'manage_user' %}active-link{% endif %}">Users</a></li>
+                    <li><a href="{% url 'academic_setup' %}" class="{% if current_url == 'academic_setup' %}active-link{% endif %}">Academic Setup</a></li>
+                    <li><a href="{% url 'student_record' %}" class="{% if current_url == 'student_record' %}active-link{% endif %}">Student Record</a></li>
+                    <li><a href="{% url 'assign_subject' %}" class="{% if current_url == 'assign_subject' %}active-link{% endif %}">Assign Subject</a></li>
+                    <li><a href="{% url 'score' %}" class="{% if current_url == 'score' %}active-link{% endif %}">Scores</a></li>
+                </div>
+            </ul>
+        </li>
+        {% endwith %}
+
+        {% elif user.role == 'faculty' %}
+        <!-- Faculty Sidebar -->
+        <li class="{% if request.resolver_match.url_name == 'faculty' %}active{% endif %}">
+            <a href="{% url 'faculty' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                    <path d="M275-274h90v-291h-90v291Zm160 0h90v-412h-90v412Zm160 0h90v-171h-90v171ZM212-76q-57.12 0-96.56-39.44Q76-154.88 76-212v-536q0-57.13 39.44-96.56Q154.88-884 212-884h536q57.13 0 96.56 39.44Q884-805.13 884-748v536q0 57.12-39.44 96.56Q805.13-76 748-76H212Z"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'student_record' %}active{% endif %}">
+            <a href="{% url 'student_record' %}">
+                <i class="fas fa-users"></i>
+                <span>Student Record</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'score' %}active{% endif %}">
+            <a href="{% url 'score' %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Scores</span>
+            </a>
+        </li>
+
+        {% elif user.role == 'student' %}
+        <!-- Student Sidebar -->
+        <li class="{% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+            <a href="{% url 'student_dashboard' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                    <path d="M275-274h90v-291h-90v291Zm160 0h90v-412h-90v412Zm160 0h90v-171h-90v171ZM212-76q-57.12 0-96.56-39.44Q76-154.88 76-212v-536q0-57.13 39.44-96.56Q154.88-884 212-884h536q57.13 0 96.56 39.44Q884-805.13 884-748v536q0 57.12-39.44 96.56Q805.13-76 748-76H212Z"/>
+                </svg>
+                <span>My Dashboard</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'student_scores' %}active{% endif %}">
+            <a href="{% url 'student_scores' %}">
+                <i class="fas fa-graduation-cap"></i>
+                <span>My Scores</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- Logout -->
+        <li class="logout">
+            <a href="{% url 'index' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h240q17 0 28.5 11.5T480-800q0 17-11.5 28.5T440-760H200v560h240q17 0 28.5 11.5T480-160q0 17-11.5 28.5T440-120H200Zm487-320H400q-17 0-28.5-11.5T360-480q0-17 11.5-28.5T400-520h287l-75-75q-11-11-11-27t11-28q11-12 28-12.5t29 11.5l143 143q12 12 12 28t-12 28L669-309q-12 12-28.5 11.5T612-310q-11-12-10.5-28.5T613-366l74-74Z"/>
+                </svg>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+

@@ -1,24 +1,427 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Scores{% endblock %}
 
 {% block content %}
-<h1>Score Management</h1>
 
-  <ul class="nav nav-tabs mt-3">
-    <li class="nav-item"><a class="nav-link {% if tab == 'score' %}active{% endif %}" href="{% url 'score' %}">Overview</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'quiz' %}active{% endif %}" href="{% url 'quiz' %}">Quiz</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'exam' %}active{% endif %}" href="{% url 'exam' %}">Exam</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'project' %}active{% endif %}" href="{% url 'project' %}">Project</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">Attendance</a></li>
+<style>
+    body {
+        font-family: Inter, Poppins, sans-serif;
+    }
 
-  </ul>
-<div class="mb-3">
-  <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#atRiskStudentsModal">
-    <i class="fas fa-exclamation-triangle"></i> View At-Risk Students
-  </button>
-</div>
+    .user-folder-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background: transparent;
+    }
 
-<table class="table table-striped">
+    .user-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-heading h2 {
+        color: #152E21;
+        font-weight: 500;
+    }
+
+.tab-search {
+    background: #F6F5AE;
+    display: flex;
+    padding: 20px;
+    gap: 8px;
+    align-items: center;
+}
+.tab-search input[type="text"] {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    margin: 4px;
+    font-family: Poppins, sans-serif;
+    flex: 0.4;
+}
+.search-btn {
+    background: #152E21;
+    color: #F6F5AE;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.search-btn:hover {
+    background: #1a3a28;
+}
+
+    .user-add-btn {
+        border-radius: 999px;
+        background: #b4d96b;
+        color: #152E21;
+        border: none;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        cursor: pointer;
+    }
+    .user-add-btn.danger {
+        background: #EF5353;
+        color: #FFFFFF;
+    }
+    .user-add-btn.danger:hover {
+        background: #d84343;
+    }
+
+    /* Tabs (folder-style) */
+    .tabs {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .tabs.group:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .tabs li {
+        float: left;
+        position: relative;
+    }
+    .tabs a {
+        float: left;
+        padding: 0.7rem 40px;
+        text-decoration: none;
+        color: #152E21;
+        background: #d9d9d9;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    .tabs .active a {
+        background: #F6F5AE;
+        color: #152E21;
+    }
+    .tabs li:before,
+    .tabs li:after,
+    .tabs li a:before,
+    .tabs li a:after {
+        position: absolute;
+        bottom: 0;
+    }
+    .tabs li:before,
+    .tabs li:after {
+        background: #ddc385;
+        width: 10px;
+        height: 10px;
+    }
+    .tabs li:before { left: -10px; }
+    .tabs li:after { right: -10px; }
+    .tabs li a:after,
+    .tabs li a:before {
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #222;
+        z-index: 2;
+    }
+    .tabs .active a:after,
+    .tabs .active a:before {
+        background: #F6F5AE;
+    }
+    .tabs li:first-child.active a:before,
+    .tabs li:last-child.active a:after {
+        background: #222;
+    }
+    .tabs li a:before { left: -20px; }
+    .tabs li a:after { right: -20px; }
+
+    .tab-content {
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+
+    .user-table-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .user-table thead {
+        background: #D9D9D9;
+        color: #152E21;
+        font-weight: bold;
+    }
+    .user-table thead th {
+        padding: 20px;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .user-table tbody td {
+        padding: 20px;
+        font-size: 0.8rem;
+        background-color: #FFFFFF;
+        max-width: 180px;
+        word-wrap: break-word;
+        white-space: normal;
+        color: #1E1E1E;
+    }
+    .user-table tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+    .user-table tbody td.actions-cell {
+        white-space: nowrap;
+        max-width: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    .btn-action {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .btn-action svg {
+        width: 16px;
+        height: 16px;
+    }
+    .btn-action-pdf {
+        background-color: #EF5353;
+        color: #FFFFFF;
+    }
+    .btn-action-pdf:hover {
+        background: #d84343;
+        color: #FFFFFF;
+    }
+    .btn-action-predict {
+        background-color: #9C27B0;
+        color: #FFFFFF;
+    }
+    .btn-action-predict:hover {
+        background: #7b1fa2;
+        color: #FFFFFF;
+    }
+    .btn-action-edit {
+        background-color: #B2C85C;
+        color: #1E1E1E;
+    }
+    .btn-action-edit:hover {
+        background: #f5fadf;
+        color: #1E1E1E;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-top: 2rem;
+    }
+    .pagination .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        border: none;
+        padding: 10px 18px;
+        margin: 0 4px;
+        border-radius: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1a3a28;
+        color: #F6F5AE;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        font-weight: 600;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .user-heading {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .user-add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .tab-search {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-search input[type="text"] {
+            flex: 1 1 100%;
+            margin-bottom: 8px;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .user-table-wrapper {
+            overflow-x: auto;
+        }
+        .user-table {
+            min-width: 600px;
+        }
+        .user-table thead th,
+        .user-table tbody td {
+            font-size: 0.75rem;
+        }
+        .btn-action {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+        .btn-action svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    /* Card Styles for Mobile */
+    .user-cards-wrapper {
+        display: none;
+    }
+    .user-card {
+        background: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .user-card-row:last-child {
+        border-bottom: none;
+    }
+    .user-card-label {
+        font-weight: 600;
+        color: #152E21;
+        font-size: 0.85rem;
+    }
+    .user-card-value {
+        color: #1E1E1E;
+        font-size: 0.85rem;
+        text-align: right;
+    }
+    .user-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+        flex-wrap: wrap;
+    border-top: none;
+    }
+
+    @media (max-width: 600px) {
+        .user-folder-card {
+            gap: 1rem;
+        }
+        .user-heading h2 {
+            font-size: 1.3rem;
+        }
+        /* Hide table on mobile */
+        .user-table-wrapper {
+            display: none;
+        }
+        /* Show cards on mobile */
+        .user-cards-wrapper {
+            display: block;
+            padding: 12px;
+            background: #FFFFFF;
+        }
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            min-width: 38px;
+            margin: 0 2px;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="user-folder-card">
+        <div class="user-heading">
+            <h2>Score Management</h2>
+            <button type="button" class="user-add-btn danger" data-bs-toggle="modal" data-bs-target="#atRiskStudentsModal">
+                <i class="fas fa-exclamation-triangle"></i> View At-Risk Students
+            </button>
+        </div>
+
+        
+
+        <div class="user-data-table">
+
+            <div class="tab-content">
+                <ul class="tabs group">
+                    <li class="{% if tab == 'score' %}active{% endif %}">
+                        <a href="{% url 'score' %}">Overview</a>
+                    </li>
+                    <li class="{% if tab == 'quiz' %}active{% endif %}">
+                        <a href="{% url 'quiz' %}">Quiz</a>
+                    </li>
+                    <li class="{% if tab == 'exam' %}active{% endif %}">
+                        <a href="{% url 'exam' %}">Exam</a>
+                    </li>
+                    <li class="{% if tab == 'project' %}active{% endif %}">
+                        <a href="{% url 'project' %}">Project</a>
+                    </li>
+                    <li class="{% if tab == 'attendance' %}active{% endif %}">
+                        <a href="{% url 'attendance' %}">Attendance</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <form method="get" class="tab-search">
+                <input type="text" name="search" placeholder="Search students..." value="{{ search }}">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+
+            <div class="user-table-wrapper">
+                <table class="user-table">
     <thead>
         <tr>
             <th>Student</th>
@@ -95,34 +498,36 @@
                             <span class="text-muted">Not Predicted</span>
                         {% endif %}
                     </td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn btn-sm btn-danger" title="Generate PDF">
-                                <i class="fas fa-file-pdf"></i> PDF
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
+                                PDF
                             </a>
-                            <button type="button" class="btn btn-sm btn-info predict-btn" 
+                            <button type="button" class="btn-action btn-action-predict predict-btn" 
                                     data-student-id="{{ data.student.id }}" 
                                     data-subject-id="{{ subject_data.subject_id }}"
                                     title="Predict Grade">
-                                <i class="fas fa-brain"></i> Predict
+                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="m199 125.31l-49.88-18.39L130.69 57a19.92 19.92 0 0 0-37.38 0l-18.39 49.92L25 125.31a19.92 19.92 0 0 0 0 37.38l49.88 18.39L93.31 231a19.92 19.92 0 0 0 37.38 0l18.39-49.88L199 162.69a19.92 19.92 0 0 0 0-37.38m-63.38 35.16a12 12 0 0 0-7.11 7.11L112 212.28l-16.47-44.7a12 12 0 0 0-7.11-7.11L43.72 144l44.7-16.47a12 12 0 0 0 7.11-7.11L112 75.72l16.47 44.7a12 12 0 0 0 7.11 7.11l44.7 16.47ZM140 40a12 12 0 0 1 12-12h12V16a12 12 0 0 1 24 0v12h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0V52h-12a12 12 0 0 1-12-12m112 48a12 12 0 0 1-12 12h-4v4a12 12 0 0 1-24 0v-4h-4a12 12 0 0 1 0-24h4v-4a12 12 0 0 1 24 0v4h4a12 12 0 0 1 12 12"/></svg>
+                                Predict
                             </button>
                             {% if subject_data.quiz_average %}
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
+                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
                                 <i class="fas fa-edit"></i> Quiz
                             </button>
                             {% endif %}
                             {% if subject_data.exam_average %}
-                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editExamModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Exam">
+                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editExamModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Exam">
                                 <i class="fas fa-edit"></i> Exam
                             </button>
                             {% endif %}
                             {% if subject_data.project_average %}
-                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Project">
+                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Project">
                                 <i class="fas fa-edit"></i> Project
                             </button>
                             {% endif %}
                             {% if subject_data.attendance_average %}
-                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
+                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
                                 <i class="fas fa-edit"></i> Attendance
                             </button>
                             {% endif %}
@@ -140,10 +545,13 @@
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
-                    <td>
-                        <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn btn-sm btn-danger">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </a>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
+                                PDF
+                            </a>
+                        </div>
                     </td>
                 </tr>
             {% endif %}
@@ -155,13 +563,134 @@
     </tbody>
 </table>
 
+            </div>
+
+            <div class="user-cards-wrapper">
+            {% if student_score_data %}
+                {% for data in student_score_data %}
+                    {% for subject_data in data.subjects %}
+                        <div class="user-card">
+                            <div class="user-card-row">
+                                <span class="user-card-label">Student</span>
+                                <span class="user-card-value">{{ data.student.fullname }}</span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Grade & Section</span>
+                                <span class="user-card-value">{{ data.student.grade_and_section }}</span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Subject</span>
+                                <span class="user-card-value">{{ subject_data.subject.name }} ({{ subject_data.subject.code }})</span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Exam / Project</span>
+                                <span class="user-card-value">
+                                    {% if subject_data.exam_average %}
+                                        {{ subject_data.exam_average|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                    /
+                                    {% if subject_data.project_average %}
+                                        {{ subject_data.project_average|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Quiz</span>
+                                <span class="user-card-value">
+                                    {% if subject_data.quiz_average %}
+                                        {{ subject_data.quiz_average|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Attendance</span>
+                                <span class="user-card-value">
+                                    {% if subject_data.attendance_average %}
+                                        {{ subject_data.attendance_average|floatformat:2 }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Grade</span>
+                                <span class="user-card-value">
+                                    {% if subject_data.grade %}
+                                        {{ subject_data.grade|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="user-card-row">
+                                <span class="user-card-label">Status</span>
+                                <span class="user-card-value">
+                                    {% if subject_data.ml_prediction %}
+                                        {{ subject_data.ml_prediction.predicted_category }}
+                                    {% else %}
+                                        {{ subject_data.performance_category|default:'Not Predicted' }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="user-card-actions">
+                                <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
+                                    PDF
+                                </a>
+                                <button type="button" class="btn-action btn-action-predict predict-btn"
+                                        data-student-id="{{ subject_data.student_id }}"
+                                        data-subject-id="{{ subject_data.subject_id }}"
+                                        title="Predict Grade">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="m199 125.31l-49.88-18.39L130.69 57a19.92 19.92 0 0 0-37.38 0l-18.39 49.92L25 125.31a19.92 19.92 0 0 0 0 37.38l49.88 18.39L93.31 231a19.92 19.92 0 0 0 37.38 0l18.39-49.88L199 162.69a19.92 19.92 0 0 0 0-37.38m-63.38 35.16a12 12 0 0 0-7.11 7.11L112 212.28l-16.47-44.7a12 12 0 0 0-7.11-7.11L43.72 144l44.7-16.47a12 12 0 0 0 7.11-7.11L112 75.72l16.47 44.7a12 12 0 0 0 7.11 7.11l44.7 16.47ZM140 40a12 12 0 0 1 12-12h12V16a12 12 0 0 1 24 0v12h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0V52h-12a12 12 0 0 1-12-12m112 48a12 12 0 0 1-12 12h-4v4a12 12 0 0 1-24 0v-4h-4a12 12 0 0 1 0-24h4v-4a12 12 0 0 1 24 0v4h4a12 12 0 0 1 12 12"/></svg>
+                                    Predict
+                                </button>
+                                {% if subject_data.quiz_average %}
+                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
+                                    <i class="fas fa-edit"></i> Quiz
+                                </button>
+                                {% endif %}
+                                {% if subject_data.exam_average %}
+                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editExamModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Exam">
+                                    <i class="fas fa-edit"></i> Exam
+                                </button>
+                                {% endif %}
+                                {% if subject_data.project_average %}
+                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Project">
+                                    <i class="fas fa-edit"></i> Project
+                                </button>
+                                {% endif %}
+                                {% if subject_data.attendance_average %}
+                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
+                                    <i class="fas fa-edit"></i> Attendance
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="user-card">
+                    <div class="user-card-row">
+                        <span class="user-card-value">No students found.</span>
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+
 <!-- Pagination -->
 {% if page_obj %}
-<nav aria-label="Page navigation" class="mt-3">
-    <ul class="pagination justify-content-center">
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-3">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
             </li>
         {% endif %}
         
@@ -170,14 +699,14 @@
                 <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
             </li>
         {% endif %}
     </ul>
@@ -338,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const studentId = this.getAttribute('data-student-id');
             const subjectId = this.getAttribute('data-subject-id');
             const btn = this;
-            const originalText = btn.innerHTML;
+            const originalHTML = btn.innerHTML;
             
             // Disable button and show loading
             btn.disabled = true;
@@ -374,14 +903,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     alert(data.message || 'Prediction failed');
                     btn.disabled = false;
-                    btn.innerHTML = originalText;
+                    btn.innerHTML = originalHTML;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again.');
                 btn.disabled = false;
-                btn.innerHTML = originalText;
+                btn.innerHTML = originalHTML;
             });
         });
     });

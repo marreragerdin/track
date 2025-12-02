@@ -3,147 +3,961 @@
 {% block title %}Academic Setup{% endblock %}
 
 {% block content %}
-  <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center">
-    <h2>Academic Setup</h2>
-    <a href="{% url 'adminpage' %}" class="btn btn-secondary">Go Back</a>
-  </div>
 
-  <ul class="nav nav-tabs mt-3">
-    <li class="nav-item"><a class="nav-link {% if tab == 'school_year' %}active{% endif %}" href="?tab=school_year">School Year</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'subject' %}active{% endif %}" href="?tab=subject">Subjects</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'section' %}active{% endif %}" href="?tab=section">Sections</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'faculty' %}active{% endif %}" href="?tab=faculty">Faculty Assignment</a></li>
-    <li class="nav-item"><a class="nav-link {% if tab == 'grading' %}active{% endif %}" href="?tab=grading">Grading Setup</a></li>
-  </ul>
+<style>
+    body {
+        font-family: Inter, Poppins, sans-serif;
+    }
 
-  <div class="mt-3">
-    <!-- Action bar -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        {% if tab == 'school_year' %}
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSchoolYearModal">Add School Year</button>
-        {% elif tab == 'subject' %}
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubjectModal">Add Subject</button>
-        {% elif tab == 'section' %}
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSectionModal">Add Section</button>
-        {% elif tab == 'faculty' %}
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFacultyModal">Assign Faculty</button>
-        {% elif tab == 'grading' %}
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGradingModal">Add Component</button>
-        {% endif %}
-      </div>
+    .user-folder-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background: transparent;
+    }
 
-    </div>
+    .user-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-    <hr>
-    <h5>Existing Records</h5>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          {% if tab == 'school_year' %}
-            <tr><th>Year</th><th>Status</th><th>Actions</th></tr>
-          {% elif tab == 'subject' %}
-            <tr><th>Code</th><th>Name</th><th>Status</th><th>Actions</th></tr>
-          {% elif tab == 'section' %}
-            <tr><th>Grade</th><th>Section</th><th>Adviser</th><th>No. Students</th><th>Status</th><th>Actions</th></tr>
-          {% elif tab == 'faculty' %}
-            <tr><th>Subject</th><th>Faculty</th><th>Status</th><th>Actions</th></tr>
-          {% elif tab == 'grading' %}
-            <tr><th>Component</th><th>Weight</th><th>Status</th><th>Actions</th></tr>
-          {% endif %}
-        </thead>
-        <tbody>
-  {% for obj in page_obj %}
-    <tr>
-      {% if tab == 'school_year' %}
-        <td>{{ obj.year }}</td>
-        <td>{{ obj.status }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editSchoolYearModal{{ obj.id }}">Edit</button>
-          <a href="{% url 'delete_school_year' obj.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this school year?')">Delete</a>
-        </td>
-      {% elif tab == 'subject' %}
-        <td>{{ obj.code }}</td>
-        <td>{{ obj.name }}</td>
-        <td>{{ obj.status }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editSubjectModal{{ obj.id }}">Edit</button>
-          <a href="{% url 'delete_subject' obj.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this subject?')">Delete</a>
-        </td>
-      {% elif tab == 'section' %}
-        <td>{{ obj.grade }}</td>
-        <td>{{ obj.name }}</td>
-        <td>{{ obj.adviser }}</td>
-        <td>{{ obj.number_of_students }}</td>
-        <td>{{ obj.status }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editSectionModal{{ obj.id }}">Edit</button>
-          <a href="{% url 'delete_section' obj.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this section?')">Delete</a>
-        </td>
-      {% elif tab == 'faculty' %}
-        <td>
-          {% for sub in obj.subjects.all %}
-            {{ sub.name }}{% if not forloop.last %}, {% endif %}
-          {% empty %}
-            None
-          {% endfor %}
-        </td>
-        <td>{{ obj.faculty.get_full_name|default:obj.faculty.username }}</td>
-        <td>{{ obj.status }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editFacultyAssignmentModal{{ obj.id }}">Edit</button>
-          <a href="{% url 'delete_faculty' obj.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this faculty assignment?')">Delete</a>
-        </td>
+    .user-heading h2 {
+        color: #152E21;
+        font-weight: 500;
+    }
 
+    .user-add-btn {
+        border-radius: 999px;
+        background: #b4d96b;
+        color: #152E21;
+        border: none;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        cursor: pointer;
+    }
 
-      {% elif tab == 'grading' %}
-        <td>{{ obj.component }}</td>
-        <td>{{ obj.weight }}%</td>
-        <td>{{ obj.status }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editGradingModal{{ obj.id }}">Edit</button>
-          <a href="{% url 'delete_grading' obj.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this grading component?')">Delete</a>
-        </td>
-      {% endif %}
-    </tr>
-  {% empty %}
-    <tr><td colspan="6">No records</td></tr>
-  {% endfor %}
-</tbody>
+    /* Tabs (folder-style) */
+    .tabs {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .tabs.group:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .tabs li {
+        float: left;
+        position: relative;
+    }
+    .tabs a {
+        float: left;
+        padding: 0.7rem 40px;
+        text-decoration: none;
+        color: #152E21;
+        background: #d9d9d9;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    .tabs .active a {
+        background: #F6F5AE;
+        color: #152E21;
+    }
+    .tabs li:before,
+    .tabs li:after,
+    .tabs li a:before,
+    .tabs li a:after {
+        position: absolute;
+        bottom: 0;
+    }
+    .tabs li:before,
+    .tabs li:after {
+        background: #ddc385;
+        width: 10px;
+        height: 10px;
+    }
+    .tabs li:before { left: -10px; }
+    .tabs li:after { right: -10px; }
+    .tabs li a:after,
+    .tabs li a:before {
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #222;
+        z-index: 2;
+    }
+    .tabs .active a:after,
+    .tabs .active a:before {
+        background: #F6F5AE;
+    }
+    .tabs li:first-child.active a:before,
+    .tabs li:last-child.active a:after {
+        background: #222;
+    }
+    .tabs li a:before { left: -20px; }
+    .tabs li a:after { right: -20px; }
 
-      </table>
-    </div>
+    .tab-content {
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
     
-    <!-- Pagination -->
-    {% if page_obj %}
-    <nav aria-label="Page navigation" class="mt-3">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+
+    .user-table-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .user-table thead {
+        background: #D9D9D9;
+        color: #152E21;
+        font-weight: bold;
+    }
+    .user-table thead th {
+        padding: 20px;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .user-table tbody td {
+        padding: 20px;
+        font-size: 0.8rem;
+        background-color: #FFFFFF;
+        max-width: 180px;
+        word-wrap: break-word;
+        white-space: normal;
+        color: #1E1E1E;
+    }
+    .user-table tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+    .user-table tbody td.actions-cell {
+        white-space: nowrap;
+        max-width: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        padding: 0;
+        border: none;
+        background: #fff;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-icon-edit {
+        background-color: #B2C85C;
+        color: #1E1E1E;
+    }
+    .btn-icon-edit:hover {
+        background: #f5fadf;
+    }
+    .btn-icon-delete {
+        background-color: #EF5353;
+        color: #1E1E1E;
+    }
+    .btn-icon-delete:hover {
+        background: #ffe5e1;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-top: 2rem;
+    }
+    .pagination .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        border: none;
+        padding: 10px 18px;
+        margin: 0 4px;
+        border-radius: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1a3a28;
+        color: #F6F5AE;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        font-weight: 600;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 980px) {
+        .tabs a {
+            padding: 0.6rem 30px;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .user-heading {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .user-add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Keep tabs on a single line; allow horizontal scroll instead of stacking */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .tabs li {
+            float: none;
+            flex: 0 0 auto;
+        }
+        .tabs a {
+            padding: 0.6rem 18px;
+            font-size: 0.8rem;
+            white-space: normal;
+            max-width: 140px;
+            text-align: center;
+        }
+
+        .user-table-wrapper {
+            overflow-x: auto;
+        }
+        .user-table {
+            min-width: 600px;
+        }
+        .user-table thead th,
+        .user-table tbody td {
+            font-size: 0.75rem;
+        }
+        .btn-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+        }
+
+        /* Make search responsive like Manage Users */
+        .tab-search {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-search input[type="text"] {
+            flex: 1 1 100% !important;
+            margin-bottom: 8px;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Card Styles for Mobile */
+    .user-cards-wrapper {
+        display: none;
+    }
+    .user-card {
+        background: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .user-card-row:last-child {
+        border-bottom: none;
+    }
+    .user-card-label {
+        font-weight: 600;
+        color: #152E21;
+        font-size: 0.85rem;
+    }
+    .user-card-value {
+        color: #1E1E1E;
+        font-size: 0.85rem;
+        text-align: right;
+    }
+    .user-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    /* Search row (shared with Manage Users) */
+    .tab-search {
+        background: #F6F5AE;
+        display: flex;
+        padding: 20px;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .tab-search input[type="text"] {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #ccc;
+        margin: 4px;
+        font-family: Poppins, sans-serif;
+        flex: 0.4;
+    }
+    .search-btn {
+        background: #152E21;
+        color: #F6F5AE;
+        border: none;
+        border-radius: 999px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+    .search-btn:hover {
+        background: #1a3a28;
+    }
+
+    @media (max-width: 760px) {
+
+        .user-folder-card {
+            gap: 1rem;
+        }
+        .user-heading h2 {
+            font-size: 1.3rem;
+        }
+        /* Hide table on mobile */
+        .user-table-wrapper {
+            display: none;
+        }
+        /* Show cards on mobile */
+        .user-cards-wrapper {
+            display: block;
+            padding: 12px;
+            background: #FFFFFF;
+        }
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            min-width: 38px;
+            margin: 0 2px;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="user-folder-card">
+        <div class="user-heading">
+            <h2>Academic Setup</h2>
+            {% if tab == 'school_year' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addSchoolYearModal">
+                    <i class="fas fa-calendar-plus"></i> Add School Year
+                </button>
+            {% elif tab == 'subject' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addSubjectModal">
+                    <i class="fas fa-book"></i> Add Subject
+                </button>
+            {% elif tab == 'section' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+                    <i class="fas fa-users"></i> Add Section
+                </button>
+            {% elif tab == 'faculty' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addFacultyModal">
+                    <i class="fas fa-chalkboard-teacher"></i> Assign Faculty
+                </button>
+            {% elif tab == 'grading' %}
+                <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#addGradingModal">
+                    <i class="fas fa-percent"></i> Add Component
+                </button>
             {% endif %}
-            
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        </div>
+
+        <div class="tab-content">
+            <ul class="tabs group">
+                <li class="{% if tab == 'school_year' %}active{% endif %}">
+                    <a href="?tab=school_year">S.Y.</a>
+                </li>
+                <li class="{% if tab == 'subject' %}active{% endif %}">
+                    <a href="?tab=subject">Subjects</a>
+                </li>
+                <li class="{% if tab == 'section' %}active{% endif %}">
+                    <a href="?tab=section">Sections</a>
+                </li>
+                <li class="{% if tab == 'faculty' %}active{% endif %}">
+                    <a href="?tab=faculty">Faculty</a>
+                </li>
+                <li class="{% if tab == 'grading' %}active{% endif %}">
+                    <a href="?tab=grading">Grading</a>
+                </li>
+            </ul>
+
+            <div class="user-data-table">
+                <!-- School Year -->
+                <div id="school_year" class="tab-pane {% if tab == 'school_year' %}active{% endif %}">
+                    <form method="get" class="tab-search">
+                        <input type="hidden" name="tab" value="school_year">
+                        <input type="text" name="search" placeholder="Search school years..." value="{{ search }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'school_year' %}
+                                    {% for obj in page_obj %}
+                                        <tr>
+                                            <td>{{ obj.year }}</td>
+                                            <td>{{ obj.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editSchoolYearModal{{ obj.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_school_year' obj.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this school year?')">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3">No records found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'school_year' %}
+                            {% for obj in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Year</span>
+                                        <span class="user-card-value">{{ obj.year }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ obj.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editSchoolYearModal{{ obj.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_school_year' obj.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this school year?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No records found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div id="subject" class="tab-pane {% if tab == 'subject' %}active{% endif %}">
+                    <form method="get" class="tab-search">
+                        <input type="hidden" name="tab" value="subject">
+                        <input type="text" name="search" placeholder="Search subjects..." value="{{ search }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'subject' %}
+                                    {% for obj in page_obj %}
+                                        <tr>
+                                            <td>{{ obj.code }}</td>
+                                            <td>{{ obj.name }}</td>
+                                            <td>{{ obj.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editSubjectModal{{ obj.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_subject' obj.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this subject?')">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4">No records found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'subject' %}
+                            {% for obj in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Code</span>
+                                        <span class="user-card-value">{{ obj.code }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Name</span>
+                                        <span class="user-card-value">{{ obj.name }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ obj.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editSubjectModal{{ obj.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_subject' obj.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this subject?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No records found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section -->
+                <div id="section" class="tab-pane {% if tab == 'section' %}active{% endif %}">
+                    <form method="get" class="tab-search">
+                        <input type="hidden" name="tab" value="section">
+                        <input type="text" name="search" placeholder="Search sections..." value="{{ search }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Grade</th>
+                                    <th>Section</th>
+                                    <th>Adviser</th>
+                                    <th>No. Students</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'section' %}
+                                    {% for obj in page_obj %}
+                                        <tr>
+                                            <td>{{ obj.grade }}</td>
+                                            <td>{{ obj.name }}</td>
+                                            <td>{{ obj.adviser }}</td>
+                                            <td>{{ obj.number_of_students }}</td>
+                                            <td>{{ obj.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editSectionModal{{ obj.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_section' obj.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this section?')">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6">No records found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'section' %}
+                            {% for obj in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Grade</span>
+                                        <span class="user-card-value">{{ obj.grade }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Section</span>
+                                        <span class="user-card-value">{{ obj.name }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Adviser</span>
+                                        <span class="user-card-value">{{ obj.adviser }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">No. Students</span>
+                                        <span class="user-card-value">{{ obj.number_of_students }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ obj.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editSectionModal{{ obj.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_section' obj.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this section?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No records found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Faculty -->
+                <div id="faculty" class="tab-pane {% if tab == 'faculty' %}active{% endif %}">
+                    <form method="get" class="tab-search">
+                        <input type="hidden" name="tab" value="faculty">
+                        <input type="text" name="search" placeholder="Search faculty assignments..." value="{{ search }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Faculty</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'faculty' %}
+                                    {% for obj in page_obj %}
+                                        <tr>
+                                            <td>
+                                                {% for sub in obj.subjects.all %}
+                                                    {{ sub.name }}{% if not forloop.last %}, {% endif %}
+                                                {% empty %}
+                                                    None
+                                                {% endfor %}
+                                            </td>
+                                            <td>{{ obj.faculty.get_full_name|default:obj.faculty.username }}</td>
+                                            <td>{{ obj.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editFacultyAssignmentModal{{ obj.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_faculty_assignment' obj.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this faculty assignment?')">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4">No records found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'faculty' %}
+                            {% for obj in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Subject</span>
+                                        <span class="user-card-value">
+                                            {% for sub in obj.subjects.all %}
+                                                {{ sub.name }}{% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                                None
+                                            {% endfor %}
+                                        </span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Faculty</span>
+                                        <span class="user-card-value">{{ obj.faculty.get_full_name|default:obj.faculty.username }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ obj.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editFacultyAssignmentModal{{ obj.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_faculty_assignment' obj.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this faculty assignment?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No records found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Grading -->
+                <div id="grading" class="tab-pane {% if tab == 'grading' %}active{% endif %}">
+                    <form method="get" class="tab-search">
+                        <input type="hidden" name="tab" value="grading">
+                        <input type="text" name="search" placeholder="Search grading components..." value="{{ search }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    <div class="user-table-wrapper">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Weight</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tab == 'grading' %}
+                                    {% for obj in page_obj %}
+                                        <tr>
+                                            <td>{{ obj.component }}</td>
+                                            <td>{{ obj.weight }}%</td>
+                                            <td>{{ obj.status }}</td>
+                                            <td class="actions-cell">
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn-icon btn-icon-edit"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editGradingModal{{ obj.id }}"
+                                                            title="Edit">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="{% url 'delete_grading' obj.id %}"
+                                                       class="btn-icon btn-icon-delete"
+                                                       title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this grading component?')">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4">No records found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Cards View -->
+                    <div class="user-cards-wrapper">
+                        {% if tab == 'grading' %}
+                            {% for obj in page_obj %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Component</span>
+                                        <span class="user-card-value">{{ obj.component }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Weight</span>
+                                        <span class="user-card-value">{{ obj.weight }}%</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Status</span>
+                                        <span class="user-card-value">{{ obj.status }}</span>
+                                    </div>
+                                    <div class="user-card-actions">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editGradingModal{{ obj.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_grading' obj.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this grading component?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="user-card">
+                                    <div class="user-card-row">
+                                        <span class="user-card-value">No records found.</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-3">
+                {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?tab={{ tab }}&page={{ num }}">{{ num }}</a>
+                        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}">Previous</a>
                     </li>
                 {% endif %}
-            {% endfor %}
-            
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-  </div>
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab={{ tab }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Modals -->

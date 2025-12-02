@@ -17,17 +17,6 @@ urlpatterns = [
     path('adminpage/', views.admin, name='adminpage'),
     # path('admin/', views.admin, name='admin'), # <--- careful, this might conflict with Django's built-in admin if enabled
 
-    # Password reset
-    path('reset_password/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'),
-         name='reset_password'),
-    path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_sent.html'),
-         name='password_reset_done'),
-    path('reset/<uidb64>/<token>/',
-         auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_form.html'),
-         name='password_reset_confirm'),
-    path('reset_password_complete/',
-         auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_done.html'),
-         name='reset_password_complete'),
 
     # User management
     path('manage_user/', views.manage_user, name='manage_user'),
@@ -55,7 +44,7 @@ path('academic_setup/section/edit/<int:pk>/', views.edit_section, name='edit_sec
 path('academic_setup/section/delete/<int:pk>/', views.delete_section, name='delete_section'),
 
 path('academic_setup/faculty/edit/<int:pk>/', views.edit_faculty, name='edit_faculty'),
-path('academic_setup/faculty/delete/<int:pk>/', views.delete_faculty, name='delete_faculty'),
+path('academic_setup/faculty/delete/<int:pk>/', views.delete_faculty_assignment, name='delete_faculty_assignment'),
 
 path('academic_setup/grading/edit/<int:pk>/', views.edit_grading, name='edit_grading'),
 path('academic_setup/grading/delete/<int:pk>/', views.delete_grading, name='delete_grading'),

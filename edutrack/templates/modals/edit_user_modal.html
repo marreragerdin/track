@@ -10,32 +10,39 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" name="first_name" id="first_name" class="form-control" value="{{ user_obj.user.first_name }}" required>
+                        <label for="first_name_{{ user_obj.id }}" class="form-label">First Name</label>
+                        <input type="text" name="first_name" id="first_name_{{ user_obj.id }}" class="form-control" value="{{ user_obj.user.first_name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="last_name" class="form-label">Last Name</label>
-                        <input type="text" name="last_name" id="last_name" class="form-control" value="{{ user_obj.user.last_name }}" required>
+                        <label for="last_name_{{ user_obj.id }}" class="form-label">Last Name</label>
+                        <input type="text" name="last_name" id="last_name_{{ user_obj.id }}" class="form-control" value="{{ user_obj.user.last_name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" name="username" id="username" class="form-control" value="{{ user_obj.user.username }}" required>
+                        <label for="username_{{ user_obj.id }}" class="form-label">Username</label>
+                        <input type="text" name="username" id="username_{{ user_obj.id }}" class="form-control" value="{{ user_obj.user.username }}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password (leave blank to keep current)</label>
-                        <input type="password" name="password" id="password" class="form-control">
+                        <label for="password_{{ user_obj.id }}" class="form-label">Password (leave blank to keep current)</label>
+                        <input type="password" name="password" id="password_{{ user_obj.id }}" class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="year_level" class="form-label">Year Level</label>
-                        <input type="number" name="year_level" id="year_level" class="form-control" value="{{ user_obj.year_level }}" required>
+                        <label for="edit_grade_level_{{ user_obj.id }}" class="form-label">Grade Level</label>
+                        <select name="grade_level" id="edit_grade_level_{{ user_obj.id }}" class="form-select">
+                            <option value="Grade 7" {% if user_obj.year_level == 7 %}selected{% endif %}>Grade 7</option>
+                            <option value="Grade 8" {% if user_obj.year_level == 8 %}selected{% endif %}>Grade 8</option>
+                            <option value="Grade 9" {% if user_obj.year_level == 9 %}selected{% endif %}>Grade 9</option>
+                            <option value="Grade 10" {% if user_obj.year_level == 10 %}selected{% endif %}>Grade 10</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="section" class="form-label">Section</label>
-                        <input type="text" name="section" id="section" class="form-control" value="{{ user_obj.section }}" required>
+                        <label for="edit_section_{{ user_obj.id }}" class="form-label">Section</label>
+                        <select name="section" id="edit_section_{{ user_obj.id }}" class="form-select" data-current-section="{{ user_obj.section }}">
+                            <option value="">-- Select section --</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select name="status" id="status" class="form-select" required>
+                        <label for="status_{{ user_obj.id }}" class="form-label">Status</label>
+                        <select name="status" id="status_{{ user_obj.id }}" class="form-select" required>
                             <option value="Active" {% if user_obj.status == 'Active' %}selected{% endif %}>Active</option>
                             <option value="Inactive" {% if user_obj.status == 'Inactive' %}selected{% endif %}>Inactive</option>
                         </select>

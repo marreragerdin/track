@@ -1,39 +1,390 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Academic Setup{% endblock %}
+{% block title %}Assign Subject{% endblock %}
 
 {% block content %}
-<h1>Assign Subject</h1>
-<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#assignSubjectModal">Assign Subject</button>
 
-<table class="table table-hover">
-  <thead class="table-dark">
-    <tr>
-      <th scope="col">Subject</th>
-      <th scope="col">Grade Level</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in page_obj %}
-      <tr>
-        <td>{{ item.subject.name }}</td>
-        <td>{{ item.grade_level }}</td>
-        <td>{{ item.status }}</td>
-       <td>
-  <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editAssignSubjectModal{{ item.id }}">Edit</button>
-  <a href="{% url 'delete_assigned_subject' item.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-</td>
+<style>
+    body {
+        font-family: Inter, Poppins, sans-serif;
+    }
 
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="4" class="text-center">No subjects assigned yet.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    .user-folder-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background: transparent;
+    }
+
+    .user-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-heading h2 {
+        color: #152E21;
+        font-weight: 500;
+    }
+
+.tab-search {
+    background: #F6F5AE;
+    display: flex;
+    padding: 20px;
+    gap: 8px;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.tab-search input[type="text"] {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    margin: 4px;
+    font-family: Poppins, sans-serif;
+    flex: 0.4;
+}
+.search-btn {
+    background: #152E21;
+    color: #F6F5AE;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: Poppins, sans-serif;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.search-btn:hover {
+    background: #1a3a28;
+}
+
+    .user-add-btn {
+        border-radius: 999px;
+        background: #b4d96b;
+        color: #152E21;
+        border: none;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-family: Poppins, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        cursor: pointer;
+    }
+
+    .user-table-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .user-table thead {
+        background: #D9D9D9;
+        color: #152E21;
+        font-weight: bold;
+    }
+    .user-table thead th {
+        padding: 20px;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .user-table tbody td {
+        padding: 20px;
+        font-size: 0.8rem;
+        background-color: #FFFFFF;
+        max-width: 180px;
+        word-wrap: break-word;
+        white-space: normal;
+        color: #1E1E1E;
+    }
+    .user-table tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+    .user-table tbody td.actions-cell {
+        white-space: nowrap;
+        max-width: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        padding: 0;
+        border: none;
+        background: #fff;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-icon-edit {
+        background-color: #B2C85C;
+        color: #1E1E1E;
+    }
+    .btn-icon-edit:hover {
+        background: #f5fadf;
+    }
+    .btn-icon-delete {
+        background-color: #EF5353;
+        color: #1E1E1E;
+    }
+    .btn-icon-delete:hover {
+        background: #ffe5e1;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-top: 2rem;
+    }
+    .pagination .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        border: none;
+        padding: 10px 18px;
+        margin: 0 4px;
+        border-radius: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1a3a28;
+        color: #F6F5AE;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #152E21;
+        color: #F6F5AE;
+        font-weight: 600;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .user-heading {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .user-add-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .tab-search {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-search input[type="text"] {
+            flex: 1 1 100%;
+            margin-bottom: 8px;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .user-table-wrapper {
+            overflow-x: auto;
+        }
+        .user-table {
+            min-width: 600px;
+        }
+        .user-table thead th,
+        .user-table tbody td {
+            font-size: 0.75rem;
+        }
+        .btn-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* Card Styles for Mobile */
+    .user-cards-wrapper {
+        display: none;
+    }
+    .user-card {
+        background: #FFFFFF;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .user-card-row:last-child {
+        border-bottom: none;
+    }
+    .user-card-label {
+        font-weight: 600;
+        color: #152E21;
+        font-size: 0.85rem;
+    }
+    .user-card-value {
+        color: #1E1E1E;
+        font-size: 0.85rem;
+        text-align: right;
+    }
+    .user-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+    border-top: none;
+    }
+
+    @media (max-width: 600px) {
+        .user-folder-card {
+            gap: 1rem;
+        }
+        .user-heading h2 {
+            font-size: 1.3rem;
+        }
+        /* Hide table on mobile */
+        .user-table-wrapper {
+            display: none;
+        }
+        /* Show cards on mobile */
+        .user-cards-wrapper {
+            display: block;
+            padding: 12px;
+            background: #FFFFFF;
+        }
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            min-width: 38px;
+            margin: 0 2px;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="user-folder-card">
+        <div class="user-heading">
+            <h2>Assign Subject</h2>
+            <button type="button" class="user-add-btn" data-bs-toggle="modal" data-bs-target="#assignSubjectModal">
+                <i class="fas fa-book"></i> Assign Subject
+            </button>
+        </div>
+
+        <div class="user-data-table">
+            <form method="get" class="tab-search">
+                <input type="text" name="search" placeholder="Search assignments..." value="{{ search }}">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+
+            <div class="user-table-wrapper">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Grade Level</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in page_obj %}
+                            <tr>
+                                <td>{{ item.subject.name }}</td>
+                                <td>{{ item.grade_level }}</td>
+                                <td>{{ item.status }}</td>
+                                <td class="actions-cell">
+                                    <div class="action-buttons">
+                                        <button type="button" class="btn-icon btn-icon-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editAssignSubjectModal{{ item.id }}"
+                                                title="Edit">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{% url 'delete_assigned_subject' item.id %}"
+                                           class="btn-icon btn-icon-delete"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure?')">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No subjects assigned yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="user-cards-wrapper">
+                {% for item in page_obj %}
+                    <div class="user-card">
+                        <div class="user-card-row">
+                            <span class="user-card-label">Subject</span>
+                            <span class="user-card-value">{{ item.subject.name }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Grade Level</span>
+                            <span class="user-card-value">{{ item.grade_level }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Status</span>
+                            <span class="user-card-value">{{ item.status }}</span>
+                        </div>
+                        <div class="user-card-actions">
+                            <button type="button" class="btn-icon btn-icon-edit"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editAssignSubjectModal{{ item.id }}"
+                                    title="Edit">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <a href="{% url 'delete_assigned_subject' item.id %}"
+                               class="btn-icon btn-icon-delete"
+                               title="Delete"
+                               onclick="return confirm('Are you sure?')">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="user-card">
+                        <div class="user-card-row">
+                            <span class="user-card-value">No subjects assigned yet.</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Assign Subject Modal - will be loaded dynamically -->
 <div class="modal fade" id="assignSubjectModal" tabindex="-1" aria-labelledby="assignSubjectModalLabel" aria-hidden="true">
@@ -96,11 +447,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Pagination -->
 {% if page_obj %}
-<nav aria-label="Page navigation" class="mt-3">
-    <ul class="pagination justify-content-center">
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-3">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
             </li>
         {% endif %}
         
@@ -109,14 +460,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
             </li>
         {% endif %}
     </ul>
