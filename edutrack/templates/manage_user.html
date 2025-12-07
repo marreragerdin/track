@@ -541,7 +541,6 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Department</th>
-                                    <th>Adviser Status</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -554,15 +553,6 @@
                                             <td>{{ f.user.get_full_name }}</td>
                                             <td>{{ f.user.email }}</td>
                                             <td>{{ f.department }}</td>
-                                            <td>
-                                                {% if f.advised_sections.all %}
-                                                    {% for section in f.advised_sections.all %}
-                                                        {{ section.grade }} {{ section.name }}<br>
-                                                    {% endfor %}
-                                                {% else %}
-                                                    —
-                                                {% endif %}
-                                            </td>
                                             <td>{{ f.status }}</td>
                                             <td class="actions-cell">
                                                 <div class="action-buttons">
@@ -582,7 +572,7 @@
                                         </tr>
                                     {% empty %}
                                         <tr>
-                                            <td colspan="7">No faculty found.</td>
+                                            <td colspan="6">No faculty found.</td>
                                         </tr>
                                     {% endfor %}
                                 {% endif %}
@@ -609,18 +599,6 @@
                                     <div class="user-card-row">
                                         <span class="user-card-label">Department</span>
                                         <span class="user-card-value">{{ f.department }}</span>
-                                    </div>
-                                    <div class="user-card-row">
-                                        <span class="user-card-label">Adviser Status</span>
-                                        <span class="user-card-value">
-                                            {% if f.advised_sections.all %}
-                                                {% for section in f.advised_sections.all %}
-                                                    {{ section.grade }} {{ section.name }}<br>
-                                                {% endfor %}
-                                            {% else %}
-                                                —
-                                            {% endif %}
-                                        </span>
                                     </div>
                                     <div class="user-card-row">
                                         <span class="user-card-label">Status</span>

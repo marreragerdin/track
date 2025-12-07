@@ -356,59 +356,7 @@
         </div>
     </div>
 
-    <!-- Students Table (if adviser) -->
-    {% if is_adviser and student_records %}
-    <div class="section-container">
-        <div class="section-header">
-            <i class="fas fa-users"></i> Students in Your Advised Section(s)
-        </div>
-        <div class="section-record">
-            <div class="table-wrapper">
-                <table class="faculty-table">
-                    <thead>
-                        <tr>
-                            <th>Student ID</th>
-                            <th>Full Name</th>
-                            <th>Grade & Section</th>
-                            <th>Gender</th>
-                            <th>Age</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in student_records %}
-                        <tr>
-                            <td data-label="Student ID">{{ student.student_id }}</td>
-                            <td data-label="Full Name">{{ student.fullname }}</td>
-                            <td data-label="Grade & Section"><span class="badge-section">{{ student.grade_and_section }}</span></td>
-                            <td data-label="Gender">{{ student.gender }}</td>
-                            <td data-label="Age">{{ student.age }}</td>
-                            <td data-label="Status">
-                                {% if student.status == 'active' %}
-                                    <span class="badge-section badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge-section badge-inactive">{{ student.status|title }}</span>
-                                {% endif %}
-                            </td>
-                            <td data-label="Actions">
-                                <a href="{% url 'edit_student' student.id %}" class="btn-icon btn-icon-edit" aria-label="Edit student {{ student.fullname }}" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" style="text-align: center; color: #616161;">No students in your advised section(s)</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
+ 
     <!-- Quick Links -->
     <div class="section-container">
         <div class="section-header">

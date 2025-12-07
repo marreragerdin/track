@@ -168,6 +168,16 @@
         margin: 0;
     }
 
+    /* Per-table horizontal scroller so each subject table scrolls independently */
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll .user-table {
+        min-width: 720px;
+    }
+
     .user-table thead {
         background: #D9D9D9;
         color: #152E21;
@@ -311,6 +321,15 @@
         .user-table-wrapper {
             overflow-x: auto;
         }
+        /* Make tabs horizontally scrollable on small screens */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tabs li { float: none; display: inline-block; }
+        .tabs a { display: inline-block; }
         .user-table thead th,
         .user-table tbody td {
             font-size: 0.75rem;
@@ -458,6 +477,7 @@
                         {% for data in page_obj %}
                             <div class="mb-4">
                                 <h4>{{ data.subject.name }} ({{ data.subject.code }})</h4>
+                                <div class="table-scroll">
                                 <table class="user-table">
                                     <thead>
                                         <tr>
@@ -504,9 +524,11 @@
                                         {% endfor %}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
+                        <div class="table-scroll">
                         <table class="user-table">
                             <thead>
                                 <tr>
@@ -522,6 +544,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     {% endif %}   
                 </div>
                 

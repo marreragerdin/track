@@ -1,39 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 {% load static %}
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
 
-    <title>Multiple user login</title>
-  </head>
-  <body>
-  <div class="content">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-md-6 contents">
-          <div class="row justify-content-center">
-            <div class="col-md-12">
-              <div class="form-block">
-                  <div class="mb-4">
-                      <h1>Welcome Mr. Django </h1>
-                  </div>
-                  <label>Log in if you already have registered!</label>
-                  <div class="form-group last mb-4">
-                      <div><button class="btn btn-pill text-white btn-block btn-primary"><a href="{% url 'login_view' %}">login</a></button></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{% static 'img/Logo_EduTracker_Lettermark.png' %}">
+  <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-              </div>
+  <title>EduTrack</title>
+
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+
+<body>
+
+<main class="container">
+  <div class="login-card">
+
+    <!-- LEFT SIDE -->
+    <div class="login-banner">
+      <img src="{% static 'img/Logo_EduTracker_Lettermark.png' %}" alt="EduTrack Logo" class="desktop-logo">
+      <img src="{% static 'img/Logo_EduTracker_Lettermark-2.png' %}" alt="Mobile Logo" class="mobile-logo">
+
+      <div class="login-heading">
+        <h1>Hello,</h1>
+        <strong>Welcome<br>Back!</strong>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="login-container">
+
+      <h3>Log In</h3>
+
+      {% if msg %}
+        <p class="message">{{ msg|safe }}</p>
+      {% endif %}
+
+      <form method="post" class="login-form">
+        {% csrf_token %}
+
+        <div class="input-fields">
+
+          <!-- USERNAME FIELD -->
+          <div class="field-container">
+            <div class="input-wrapper">
+              {{ form.username }}
+              <label for="{{ form.username.id_for_label }}">Username</label>
+            </div>
+          </div>
+
+          <!-- PASSWORD FIELD -->
+          <div class="field-container">
+            <div class="input-wrapper">
+              {{ form.password }}
+              <label for="{{ form.password.id_for_label }}">Password</label>
+
+              <!-- Toggle Button -->
+              <button type="button" class="toggle-password" onclick="togglePassword()">
+                <i class="fa-solid fa-eye"></i>
+              </button>
             </div>
           </div>
 
         </div>
 
-      </div>
+        <button type="submit" class="login-submit-btn">Log In</button>
+
+      </form>
+
     </div>
+
   </div>
+</main>
 
+<script>
+  function togglePassword() {
+    const input = document.getElementById("id_password");
+    const icon = document.querySelector(".toggle-password i");
 
-  </body>
+    if (input.type === "password") {
+      input.type = "text";
+      icon.classList.replace("fa-eye", "fa-eye-slash");
+    } else {
+      input.type = "password";
+      icon.classList.replace("fa-eye-slash", "fa-eye");
+    }
+  }
+</script>
+
+</body>
 </html>

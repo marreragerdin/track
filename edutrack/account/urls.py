@@ -32,7 +32,7 @@ urlpatterns = [
     path('academic/subject/add/', views.add_subject, name='add_subject'),
     path('academic/section/add/', views.add_section, name='add_section'),
     path('academic/faculty/add/', views.add_faculty, name='add_faculty'),
-    path('academic/grading/add/', views.add_grading, name='add_grading'),
+    # grading add endpoint removed (grading components are now fixed)
 
 path('academic_setup/school_year/edit/<int:pk>/', views.edit_school_year, name='edit_school_year'),
 path('academic_setup/school_year/delete/<int:pk>/', views.delete_school_year, name='delete_school_year'),
