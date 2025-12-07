@@ -189,6 +189,22 @@
         max-width: none;
     }
 
+    /* Light backdrop for specific modals (toggled via data attribute / JS) */
+    body.light-modal-backdrop .modal-backdrop.show {
+        background-color: rgba(0,0,0,0.18) !important;
+    }
+
+    /* Animate injected modal content for a subtle slide-in */
+    .modal-content.user-modal .injected {
+        transform: translateY(8px);
+        opacity: 0;
+        transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .modal-content.user-modal .injected.show {
+        transform: none;
+        opacity: 1;
+    }
+
     .action-buttons {
         display: flex;
         gap: 8px;
@@ -202,7 +218,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         padding: 0;
         border-width: 2px;
         border-style: solid;
@@ -224,6 +240,7 @@
     }
     .btn-icon-delete:hover {
         background: #ffe5e1;
+        color: #1E1E1E !important;
     }
 
     /* Pagination Styles */
@@ -290,11 +307,7 @@
         .user-table tbody td {
             font-size: 0.75rem;
         }
-        .btn-icon {
-            width: 2rem;
-            height: 2rem;
-            font-size: 1rem;
-        }
+
     }
 
     /* Card Styles for Mobile */
@@ -528,6 +541,7 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Department</th>
+                                    <th>Adviser Status</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -540,6 +554,15 @@
                                             <td>{{ f.user.get_full_name }}</td>
                                             <td>{{ f.user.email }}</td>
                                             <td>{{ f.department }}</td>
+                                            <td>
+                                                {% if f.advised_sections.all %}
+                                                    {% for section in f.advised_sections.all %}
+                                                        {{ section.grade }} {{ section.name }}<br>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
                                             <td>{{ f.status }}</td>
                                             <td class="actions-cell">
                                                 <div class="action-buttons">
@@ -559,7 +582,7 @@
                                         </tr>
                                     {% empty %}
                                         <tr>
-                                            <td colspan="6">No faculty found.</td>
+                                            <td colspan="7">No faculty found.</td>
                                         </tr>
                                     {% endfor %}
                                 {% endif %}
@@ -586,6 +609,18 @@
                                     <div class="user-card-row">
                                         <span class="user-card-label">Department</span>
                                         <span class="user-card-value">{{ f.department }}</span>
+                                    </div>
+                                    <div class="user-card-row">
+                                        <span class="user-card-label">Adviser Status</span>
+                                        <span class="user-card-value">
+                                            {% if f.advised_sections.all %}
+                                                {% for section in f.advised_sections.all %}
+                                                    {{ section.grade }} {{ section.name }}<br>
+                                                {% endfor %}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </span>
                                     </div>
                                     <div class="user-card-row">
                                         <span class="user-card-label">Status</span>
@@ -918,7 +953,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (fullModal) {
                             const modalContent = fullModal.querySelector('.modal-content');
                             if (modalContent) {
-                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                    const targetContent = modalElement.querySelector('.modal-content');
+                                    // animate injected content: wrap and add show class
+                                    targetContent.innerHTML = '';
+                                    const wrapper = document.createElement('div');
+                                    wrapper.className = 'injected';
+                                    wrapper.innerHTML = modalContent.innerHTML;
+                                    targetContent.appendChild(wrapper);
+                                    // Ensure the placeholder modal-content gets the user-modal class
+                                    targetContent.classList.add('user-modal');
+                                    // trigger animation
+                                    requestAnimationFrame(() => wrapper.classList.add('show'));
                                 // Initialize dynamic section filtering for student add form
                                 if (role === 'student') {
                                     initStudentSectionControls(modalElement);
@@ -928,7 +973,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Fallback: try to find modal-content directly
                             const modalContent = tempDiv.querySelector('.modal-content');
                             if (modalContent) {
-                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                    const targetContent = modalElement.querySelector('.modal-content');
+                                    targetContent.innerHTML = '';
+                                    const wrapper = document.createElement('div');
+                                    wrapper.className = 'injected';
+                                    wrapper.innerHTML = modalContent.innerHTML;
+                                    targetContent.appendChild(wrapper);
+                                    targetContent.classList.add('user-modal');
+                                    requestAnimationFrame(() => wrapper.classList.add('show'));
                                 if (role === 'student') {
                                     initStudentSectionControls(modalElement);
                                 }
@@ -976,21 +1028,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = html;
                         const fullModal = tempDiv.querySelector('.modal');
+                        const targetContent = modalElement.querySelector('.modal-content');
                         if (fullModal) {
                             const modalContent = fullModal.querySelector('.modal-content');
                             if (modalContent) {
-                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                // replace with animated wrapper so the view slides in
+                                targetContent.innerHTML = '';
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'injected';
+                                wrapper.innerHTML = modalContent.innerHTML;
+                                targetContent.appendChild(wrapper);
+                                // ensure modal styling is applied
+                                targetContent.classList.add('user-modal');
+                                // initialize student controls if needed
                                 if (userType === 'student') {
                                     initStudentSectionControls(modalElement);
                                 }
+                                requestAnimationFrame(() => wrapper.classList.add('show'));
                             }
                         } else {
                             const modalContent = tempDiv.querySelector('.modal-content');
                             if (modalContent) {
-                                modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                targetContent.innerHTML = '';
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'injected';
+                                wrapper.innerHTML = modalContent.innerHTML;
+                                targetContent.appendChild(wrapper);
+                                targetContent.classList.add('user-modal');
                                 if (userType === 'student') {
                                     initStudentSectionControls(modalElement);
                                 }
+                                requestAnimationFrame(() => wrapper.classList.add('show'));
                             }
                         }
                     })

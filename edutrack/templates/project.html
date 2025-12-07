@@ -8,6 +8,23 @@
     body {
         font-family: Inter, Poppins, sans-serif;
     }
+
+    main h4 {
+        font-size: 1rem;
+
+    }
+  
+    .mb-4 {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .mb-4 h4 {
+        background-color: #F6F5AE;
+        margin-bottom: 0;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+
     .user-folder-card {
         display: flex;
         flex-direction: column;
@@ -149,6 +166,7 @@
         width: 100%;
         overflow: hidden;
     }
+
     .user-table {
         width: 100%;
         border-collapse: collapse;
@@ -188,19 +206,19 @@
         flex-wrap: wrap;
     }
     .btn-action {
+        width: 2.5rem;
+        height: 2.5rem;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        font-size: 0.85rem;
-        font-family: Poppins, sans-serif;
+        font-size: 1.5rem;
+        padding: 0;
         border: none;
+        background: #fff;
         cursor: pointer;
-        text-decoration: none;
-        transition: background 0.2s;
+        transition: all 0.2s ease;
     }
     .btn-action svg {
         width: 16px;
@@ -211,7 +229,7 @@
         color: #FFFFFF;
     }
     .btn-action-pdf:hover {
-        background: #d84343;
+        background: #ff7070;
         color: #FFFFFF;
     }
     .btn-action-predict {
@@ -219,7 +237,7 @@
         color: #FFFFFF;
     }
     .btn-action-predict:hover {
-        background: #7b1fa2;
+        background: #9c27b0;
         color: #FFFFFF;
     }
     .btn-action-edit {
@@ -227,8 +245,17 @@
         color: #1E1E1E;
     }
     .btn-action-edit:hover {
-        background: #f5fadf;
+        background: #a8bb43;
         color: #1E1E1E;
+    }
+    .btn-action-delete {
+        background-color: #EF5353;
+        color: #1E1E1E;
+    }
+    .btn-action-delete:hover {
+        background: #ff7070;
+        color: #1E1E1E !important;
+        
     }
     .pagination {
         margin-top: 2rem;
@@ -288,12 +315,15 @@
             font-size: 0.75rem;
         }
         .btn-action {
-            padding: 6px 10px;
+            padding: 6px 8px;
             font-size: 0.75rem;
         }
         .btn-action svg {
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
+        }
+        .btn-action i {
+            font-size: 1.2rem;
         }
     }
     .user-cards-wrapper {
@@ -336,6 +366,13 @@
         border-top: none;
     }
     @media (max-width: 600px) {
+        .tabs a {
+            padding: 0.7rem 8.9px;
+            font-size: 0.7rem;
+        }
+        .user-card-value {
+            width: 60%;
+        }
         .user-folder-card {
             gap: 1rem;
         }
@@ -347,7 +384,6 @@
         }
         .user-cards-wrapper {
             display: block;
-            padding: 12px;
             background: #FFFFFF;
         }
         .pagination .page-link {
@@ -356,6 +392,34 @@
             min-width: 38px;
             margin: 0 2px;
         }
+    }
+
+    /* Custom Status Badge Styles */
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        font-family: Poppins, sans-serif;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .status-badge-at-risk {
+        background-color: #EF5353;
+        color: #FFFFFF;
+    }
+    .status-badge-average {
+        background-color: #F2C454;
+        color: #1E1E1E;
+    }
+    .status-badge-good {
+        background-color: #B9E76B;
+        color: #1E1E1E;
+    }
+    .status-badge-excellent {
+        background-color: #F39E4D;
+        color: #FFFFFF;
     }
 </style>
 
@@ -371,26 +435,23 @@
         <div class="tab-content">
             <ul class="tabs group">
                 <li class="{% if tab == 'score' %}active{% endif %}">
-                    <a href="{% url 'score' %}">Overview</a>
+                    <a href="{% url 'score' %}" data-score-tab="true">Overview</a>
                 </li>
                 <li class="{% if tab == 'quiz' %}active{% endif %}">
-                    <a href="{% url 'quiz' %}">Quiz</a>
+                    <a href="{% url 'quiz' %}" data-score-tab="true">Quiz</a>
                 </li>
                 <li class="{% if tab == 'exam' %}active{% endif %}">
-                    <a href="{% url 'exam' %}">Exam</a>
+                    <a href="{% url 'exam' %}" data-score-tab="true">Exam</a>
                 </li>
                 <li class="{% if tab == 'project' %}active{% endif %}">
-                    <a href="{% url 'project' %}">Project</a>
+                    <a href="{% url 'project' %}" data-score-tab="true">Project</a>
                 </li>
                 <li class="{% if tab == 'attendance' %}active{% endif %}">
-                    <a href="{% url 'attendance' %}">Attendance</a>
+                    <a href="{% url 'attendance' %}" data-score-tab="true">Attendance</a>
                 </li>
             </ul>
-        </div>
-
-        <div class="user-data-table">
-            <div class="user-table-wrapper">
-                {% if project_data %}
+            
+                            {% if project_data %}
                     {% for data in page_obj %}
                         <div class="mb-4">
                             <h4>{{ data.subject.name }} ({{ data.subject.code }})</h4>
@@ -403,6 +464,7 @@
                                         <th>Project {{ project_num }}</th>
                                         {% endfor %}
                                         <th>Average</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -426,16 +488,86 @@
                                                 -
                                             {% endif %}
                                         </td>
+                                        <td class="actions-cell">
+                                            <button type="button" class="btn-action btn-action-delete" onclick="if(confirm('Delete all project scores for {{ row.student.fullname }}?')) deleteScores('project', {{ row.student.id }}, {{ data.subject.id }})">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="{{ data.project_numbers|length|add:3 }}" class="text-center">No students found.</td>
+                                        <td colspan="{{ data.project_numbers|length|add:4 }}" class="text-center">No students found.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     {% endfor %}
+
+                <div class="user-cards-wrapper">
+            {% if project_data %}
+                {% for data in page_obj %}
+                    {% for row in data.student_rows %}
+                    <div class="user-card">
+                        <div class="user-card-row">
+                            <span class="user-card-label">Student</span>
+                            <span class="user-card-value">{{ row.student.fullname }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Grade & Section</span>
+                            <span class="user-card-value">{{ row.student.grade_and_section }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Subject</span>
+                            <span class="user-card-value">{{ data.subject.name }} ({{ data.subject.code }})</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Project Score</span>
+                            <span class="user-card-value">
+                                {% if row.average %}
+                                    {{ row.average|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Grade</span>
+                            <span class="user-card-value">
+                                {% if row.grade %}
+                                    {{ row.grade|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Status</span>
+                            <span class="user-card-value">
+                                {% if row.ml_prediction %}
+                                    {{ row.ml_prediction.predicted_category }}
+                                {% else %}
+                                    {{ row.performance_category|default:'Not Predicted' }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="user-card-actions">
+                            <button type="button" class="btn-action btn-action-delete" onclick="if(confirm('Delete all project scores for {{ row.student.fullname }}?')) deleteScores('project', {{ row.student.id }}, {{ data.subject.id }})">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            </div>
+        </div>
+
+        <div class="user-data-table">
+            <div class="user-table-wrapper">
+
+
+                    
 
                     {% if page_obj %}
                     <nav aria-label="Page navigation" class="mt-3">
@@ -479,7 +611,46 @@
                         </tbody>
                     </table>
                 {% endif %}
+
+            <div class="user-cards-wrapper">
+            {% if project_data %}
+                {% for data in page_obj %}
+                    {% for row in data.student_rows %}
+                    <div class="user-card">
+                        <div class="user-card-row">
+                            <span class="user-card-label">Student</span>
+                            <span class="user-card-value">{{ row.student.fullname }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Grade & Section</span>
+                            <span class="user-card-value">{{ row.student.grade_and_section }}</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Subject</span>
+                            <span class="user-card-value">{{ data.subject.name }} ({{ data.subject.code }})</span>
+                        </div>
+                        <div class="user-card-row">
+                            <span class="user-card-label">Project Score</span>
+                            <span class="user-card-value">
+                                {% if row.average %}
+                                    {{ row.average|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="user-card-actions">
+                            <button type="button" class="btn-action btn-action-delete" onclick="if(confirm('Delete all project scores for {{ row.student.fullname }}?')) deleteScores('project', {{ row.student.id }}, {{ data.subject.id }})">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
             </div>
+
+        </div>
         </div>
     </div>
 </div>
@@ -487,7 +658,7 @@
 <!-- Add Project Modal - will be loaded dynamically -->
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-body">
                 <div class="text-center">
                     <div class="spinner-border" role="status">
@@ -500,6 +671,50 @@
 </div>
 
 <script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function deleteScores(scoreType, studentId, subjectId) {
+    const csrftoken = getCookie('csrftoken');
+    fetch(`/score/delete/${scoreType}/${studentId}/${subjectId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting scores.');
+    });
+}
+
 // Load add project modal dynamically
 document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.querySelector('[data-bs-target="#addProjectModal"]');

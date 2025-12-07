@@ -26,12 +26,12 @@
 
         <!-- Admin Manage dropdown -->
         {% with current_url=request.resolver_match.url_name %}
-        {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}
+        {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' or current_url == 'quiz' or current_url == 'exam' or current_url == 'project' or current_url == 'attendance' %}
             <li class="dropdown-open">
         {% else %}
             <li>
         {% endif %}
-            <button onclick="toggleSubMenu(this)" class="dropdown-btn {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}rotate{% endif %}" type="button">
+            <button onclick="toggleSubMenu(this)" class="dropdown-btn {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' or current_url == 'quiz' or current_url == 'exam' or current_url == 'project' or current_url == 'attendance' %}rotate{% endif %}" type="button" style="transform: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
                     <path d="M851-315v-226L545-374q-31.28 16-65.14 16.5T415-374L98-548q-17-9-26.5-24.92-9.5-15.93-9.5-34 0-18.08 9.38-33.71Q80.75-656.25 98-666l317-173q16-8 32.21-12.5 16.2-4.5 32.79-4.5t32.79 4.5Q529-847 545-839l391 213q17 8 26.5 24t9.5 35.3V-314q0 24.6-17.7 42.3Q936.6-254 912-254q-24.6 0-42.8-18.2Q851-290.4 851-315ZM415-122l-170-91q-33.19-17.98-52.1-49.99Q174-295 174-332v-110l241 130q31.28 17 65.14 17T545-312l241-130v110q0 37-18.9 69.01Q748.19-230.98 715-213l-170 91q-16 9-32.21 12.5-16.2 3.5-32.79 3.5t-32.79-3.5Q431-113 415-122Z"/>
                 </svg>
@@ -40,13 +40,13 @@
                     <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/>
                 </svg>
             </button>
-            <ul class="sub-menu {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' %}show{% endif %}">
+            <ul class="sub-menu {% if current_url == 'manage_user' or current_url == 'academic_setup' or current_url == 'student_record' or current_url == 'assign_subject' or current_url == 'score' or current_url == 'quiz' or current_url == 'exam' or current_url == 'project' or current_url == 'attendance' %}show{% endif %}">
                 <div>
-                    <li><a href="{% url 'manage_user' %}" class="{% if current_url == 'manage_user' %}active-link{% endif %}">Users</a></li>
-                    <li><a href="{% url 'academic_setup' %}" class="{% if current_url == 'academic_setup' %}active-link{% endif %}">Academic Setup</a></li>
-                    <li><a href="{% url 'student_record' %}" class="{% if current_url == 'student_record' %}active-link{% endif %}">Student Record</a></li>
-                    <li><a href="{% url 'assign_subject' %}" class="{% if current_url == 'assign_subject' %}active-link{% endif %}">Assign Subject</a></li>
-                    <li><a href="{% url 'score' %}" class="{% if current_url == 'score' %}active-link{% endif %}">Scores</a></li>
+                    <li><a href="{% url 'manage_user' %}" class="{% if current_url == 'manage_user' %}active-link{% endif %}"><span>Users</span></a></li>
+                    <li><a href="{% url 'academic_setup' %}" class="{% if current_url == 'academic_setup' %}active-link{% endif %}"><span>Academic Setup</span></a></li>
+                    <li><a href="{% url 'student_record' %}" class="{% if current_url == 'student_record' %}active-link{% endif %}"><span>Student Record</span></a></li>
+                    <li><a href="{% url 'assign_subject' %}" class="{% if current_url == 'assign_subject' %}active-link{% endif %}"><span>Assign Subject</span></a></li>
+                    <li><a href="{% url 'score' %}" class="{% if current_url == 'score' or current_url == 'quiz' or current_url == 'exam' or current_url == 'project' or current_url == 'attendance' %}active-link{% endif %}"><span>Scores</span></a></li>
                 </div>
             </ul>
         </li>
@@ -68,7 +68,7 @@
                 <span>Student Record</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'score' %}active{% endif %}">
+        <li class="{% if request.resolver_match.url_name == 'score' or request.resolver_match.url_name == 'quiz' or request.resolver_match.url_name == 'exam' or request.resolver_match.url_name == 'project' or request.resolver_match.url_name == 'attendance' %}active{% endif %}">
             <a href="{% url 'score' %}">
                 <i class="fas fa-chart-line"></i>
                 <span>Scores</span>
@@ -83,12 +83,6 @@
                     <path d="M275-274h90v-291h-90v291Zm160 0h90v-412h-90v412Zm160 0h90v-171h-90v171ZM212-76q-57.12 0-96.56-39.44Q76-154.88 76-212v-536q0-57.13 39.44-96.56Q154.88-884 212-884h536q57.13 0 96.56 39.44Q884-805.13 884-748v536q0 57.12-39.44 96.56Q805.13-76 748-76H212Z"/>
                 </svg>
                 <span>My Dashboard</span>
-            </a>
-        </li>
-        <li class="{% if request.resolver_match.url_name == 'student_scores' %}active{% endif %}">
-            <a href="{% url 'student_scores' %}">
-                <i class="fas fa-graduation-cap"></i>
-                <span>My Scores</span>
             </a>
         </li>
         {% endif %}

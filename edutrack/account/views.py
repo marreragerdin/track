@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.messages import success
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, Max
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -97,6 +97,18 @@ def get_sections_by_grade(request):
     grade = request.GET.get('grade', '')
     sections = Section.objects.filter(grade=grade, status='Active').values('id', 'name')
     return JsonResponse({'sections': list(sections)})
+
+
+def api_subject_assigned(request):
+    """API endpoint to check if a subject is assigned to any active grade."""
+    subject_id = request.GET.get('subject_id')
+    try:
+        assigned = False
+        if subject_id:
+            assigned = AssignedSubject.objects.filter(subject_id=subject_id, status='Active').exists()
+        return JsonResponse({'assigned': assigned})
+    except Exception:
+        return JsonResponse({'assigned': False}, status=200)
 
 
 def student(request):
@@ -327,11 +339,17 @@ def student_scores(request):
 
 @login_required
 def faculty(request):
-    """Faculty dashboard - shows assigned subjects and student records"""
+    """Faculty dashboard - shows assigned subjects and student records
+    If faculty is an adviser, shows only students in their advised section
+    Statistics card shows student count based on adviser role"""
     if request.user.role != 'faculty':
         messages.error(request, 'Access denied.')
         return redirect('adminpage' if request.user.role == 'admin' else 'student_dashboard')
 
+    # Check if this faculty is an adviser to any section
+    # adviser field stores User ID as string, so convert request.user.id to string
+    advised_sections = Section.objects.filter(adviser=str(request.user.id))
+    
     # Get assigned subjects for this faculty
     assignments = FacultyAssignment.objects.filter(
         faculty=request.user,
@@ -345,8 +363,24 @@ def faculty(request):
     assigned_subjects = list(set(assigned_subjects))  # Remove duplicates
     assigned_subject_ids = list(set(assigned_subject_ids))
 
-    # Filter students by grade level of assigned subjects
-    if assigned_subject_ids:
+    # Filter students
+    all_students = StudentRecord.objects.filter(status='active')
+    
+    # Determine if adviser
+    is_adviser = advised_sections.exists()
+    
+    # If faculty is an adviser, only show students from their advised sections
+    if is_adviser:
+        advised_grades = list(advised_sections.values_list('grade', flat=True).distinct())
+        from django.db.models import Q as DjangoQ
+        grade_filters = DjangoQ()
+        for grade in advised_grades:
+            grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+        student_records = all_students.filter(grade_filters).order_by('fullname')
+        # For advisers, statistics card shows only advised section students
+        total_students = student_records.count()
+    elif assigned_subject_ids:
+        # Otherwise, filter students by grade level of assigned subjects
         assigned_subjects_objs = Subject.objects.filter(id__in=assigned_subject_ids)
         assigned_grade_levels = AssignedSubject.objects.filter(
             subject__in=assigned_subjects_objs,
@@ -354,26 +388,23 @@ def faculty(request):
         ).values_list('grade_level', flat=True).distinct()
 
         # Filter students whose grade_and_section starts with any assigned grade level
-        all_students = StudentRecord.objects.filter(status='active')
-        filtered_student_ids = []
-        for student in all_students:
-            if student.grade_and_section:
-                # Extract grade level from grade_and_section (format: "Grade 7 - A" or just "Grade 7")
-                student_grade = student.grade_and_section.split(' - ')[0].strip()
-                if student_grade in assigned_grade_levels:
-                    filtered_student_ids.append(student.id)
-        student_records = StudentRecord.objects.filter(id__in=filtered_student_ids).order_by('fullname')
+        from django.db.models import Q as DjangoQ
+        grade_filters = DjangoQ()
+        for grade_level in assigned_grade_levels:
+            grade_filters |= DjangoQ(grade_and_section__startswith=grade_level)
+        student_records = all_students.filter(grade_filters).order_by('fullname')
+        total_students = student_records.count()
     else:
-        # No assigned subjects - show empty
+        # No assigned subjects or sections - show empty
         student_records = StudentRecord.objects.none()
-
-    # Get statistics for assigned subjects
-    total_students = student_records.count()
+        total_students = 0
 
     context = {
         'assigned_subjects': assigned_subjects,
         'student_records': student_records,
         'total_students': total_students,
+        'advised_sections': list(advised_sections),
+        'is_adviser': is_adviser,
         'tab': 'faculty'
     }
     return render(request, 'faculty.html', context)
@@ -533,12 +564,21 @@ def manage_user(request):
     if course_filter:
         students = students.filter(course=course_filter)
 
-    # Faculty query
+    # Faculty query - include adviser information
     faculty = Faculty.objects.all()
     if search:
         faculty = faculty.filter(Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search))
     if dept_filter:
         faculty = faculty.filter(department=dept_filter)
+    
+    # Add adviser info to each faculty member
+    faculty_with_adviser_info = []
+    for fac in faculty:
+        advised_sections = Section.objects.filter(adviser=fac.user.id)
+        fac.is_adviser = advised_sections.exists()
+        fac.advised_sections = advised_sections
+        faculty_with_adviser_info.append(fac)
+    faculty = faculty_with_adviser_info
 
     # Admin query
     admins = User.objects.filter(is_admin=True)
@@ -1607,9 +1647,29 @@ from django.urls import reverse
 @login_required
 @user_passes_test(faculty_required)
 def record(request):
-    """Student record view - accessible by faculty and admin"""
+    """Student record view - accessible by faculty and admin
+    If faculty is an adviser, only show students in that section"""
     search = request.GET.get('search', '').strip()
+    
+    # If faculty, check if they are an adviser to any section
     accounts = StudentRecord.objects.all()
+    is_adviser = False
+    advised_sections = None
+    
+    if request.user.role == 'faculty':
+        # Get sections where this faculty is an adviser
+        advised_sections = Section.objects.filter(adviser=request.user.id)
+        if advised_sections.exists():
+            is_adviser = True
+            # If faculty is an adviser, only show students from those sections
+            # Build Q object for filtering by grade_and_section startswith
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for section in advised_sections:
+                # Match grade_and_section that starts with "Grade X"
+                grade_filters |= DjangoQ(grade_and_section__startswith=section.grade)
+            accounts = accounts.filter(grade_filters)
+    
     if search:
         accounts = accounts.filter(
             Q(student_id__icontains=search) |
@@ -1629,7 +1689,13 @@ def record(request):
     except:
         page_obj = paginator.page(1)
 
-    return render(request, 'student_record.html', {'page_obj': page_obj, 'search': search})
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'is_adviser': is_adviser,
+        'advised_sections': advised_sections
+    }
+    return render(request, 'student_record.html', context)
 
 def view_student(request, id):
     student = StudentRecord.objects.get(pk=id)
@@ -2082,6 +2148,33 @@ def score_view(request):
         'student', 'subject', 'section'
     ).all()
 
+    # Check if faculty is an adviser to any section
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        if faculty_advised_sections:
+            # If adviser, filter scores by students in advised sections
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(student__grade_and_section__startswith=grade)
+            scores = scores.filter(grade_filters)
+        else:
+            # If not adviser, filter by assigned subjects
+            assignments = FacultyAssignment.objects.filter(
+                faculty=request.user,
+                status='Active'
+            )
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+            
+            if assigned_subject_ids:
+                scores = scores.filter(subject_id__in=assigned_subject_ids)
+            else:
+                # No assignments or adviser role - show nothing
+                scores = scores.none()
+
     return render(request, 'score.html', {'scores': scores})
 
 from django.shortcuts import render
@@ -2092,6 +2185,25 @@ def quiz(request):
     subjects_with_quizzes = Subject.objects.filter(
         quiz_scores__isnull=False
     ).distinct().order_by('name')
+
+    # Check if faculty is an adviser to any section
+    faculty_advised_sections = []
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        
+        # If not an adviser, filter by assigned subjects
+        if not faculty_advised_sections:
+            assignments = FacultyAssignment.objects.filter(faculty=request.user, status='Active')
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+            
+            if assigned_subject_ids:
+                subjects_with_quizzes = subjects_with_quizzes.filter(id__in=assigned_subject_ids)
+            else:
+                # No assignments or adviser role - show nothing
+                subjects_with_quizzes = subjects_with_quizzes.none()
 
     # Get quiz data grouped by subject and student
     quiz_data = []
@@ -2106,14 +2218,26 @@ def quiz(request):
         if assigned_subject:
             students = StudentRecord.objects.filter(
                 status='active',
-                grade_and_section=assigned_subject.grade_level
+                grade_and_section__startswith=assigned_subject.grade_level
             ).order_by('fullname')
         else:
-            # If no assignment, show all active students (fallback)
-            students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            # If no assignment, only show students who already have quiz scores for this subject
+            students = StudentRecord.objects.filter(quiz_scores__subject=subject).distinct().order_by('fullname')
 
-        quiz_numbers = QuizScore.objects.filter(subject=subject).values_list('quiz_number', flat=True).distinct().order_by('quiz_number')
-        quiz_numbers_list = list(quiz_numbers)
+        # If faculty is an adviser, further filter by their advised sections
+        if request.user.role == 'faculty' and faculty_advised_sections:
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+            students = students.filter(grade_filters)
+
+        # Get the maximum quiz number for this subject
+        max_quiz_num = QuizScore.objects.filter(subject=subject).aggregate(max_num=Max('quiz_number'))['max_num']
+        if max_quiz_num:
+            quiz_numbers_list = list(range(1, max_quiz_num + 1))
+        else:
+            quiz_numbers_list = []
 
         student_rows = []
         for student in students:
@@ -2171,6 +2295,25 @@ def exam(request):
         exam_scores__isnull=False
     ).distinct().order_by('name')
 
+    # Check if faculty is an adviser to any section
+    faculty_advised_sections = []
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        
+        # If not an adviser, filter by assigned subjects
+        if not faculty_advised_sections:
+            assignments = FacultyAssignment.objects.filter(faculty=request.user, status='Active')
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+            
+            if assigned_subject_ids:
+                subjects_with_exams = subjects_with_exams.filter(id__in=assigned_subject_ids)
+            else:
+                # No assignments or adviser role - show nothing
+                subjects_with_exams = subjects_with_exams.none()
+
     # Get exam data grouped by subject and student
     exam_data = []
     for subject in subjects_with_exams:
@@ -2184,14 +2327,26 @@ def exam(request):
         if assigned_subject:
             students = StudentRecord.objects.filter(
                 status='active',
-                grade_and_section=assigned_subject.grade_level
+                grade_and_section__startswith=assigned_subject.grade_level
             ).order_by('fullname')
         else:
-            # If no assignment, show all active students (fallback)
-            students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            # If no assignment, only show students who already have exam scores for this subject
+            students = StudentRecord.objects.filter(exam_scores__subject=subject).distinct().order_by('fullname')
 
-        exam_numbers = ExamScore.objects.filter(subject=subject).values_list('exam_number', flat=True).distinct().order_by('exam_number')
-        exam_numbers_list = list(exam_numbers)
+        # If faculty is an adviser, further filter by their advised sections
+        if request.user.role == 'faculty' and faculty_advised_sections:
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+            students = students.filter(grade_filters)
+
+        # Get the maximum exam number for this subject
+        max_exam_num = ExamScore.objects.filter(subject=subject).aggregate(max_num=Max('exam_number'))['max_num']
+        if max_exam_num:
+            exam_numbers_list = list(range(1, max_exam_num + 1))
+        else:
+            exam_numbers_list = []
 
         student_rows = []
         for student in students:
@@ -2249,6 +2404,25 @@ def project(request):
         project_scores__isnull=False
     ).distinct().order_by('name')
 
+    # Check if faculty is an adviser to any section
+    faculty_advised_sections = []
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        
+        # If not an adviser, filter by assigned subjects
+        if not faculty_advised_sections:
+            assignments = FacultyAssignment.objects.filter(faculty=request.user, status='Active')
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+            
+            if assigned_subject_ids:
+                subjects_with_projects = subjects_with_projects.filter(id__in=assigned_subject_ids)
+            else:
+                # No assignments or adviser role - show nothing
+                subjects_with_projects = subjects_with_projects.none()
+
     # Get project data grouped by subject and student
     project_data = []
     for subject in subjects_with_projects:
@@ -2262,14 +2436,26 @@ def project(request):
         if assigned_subject:
             students = StudentRecord.objects.filter(
                 status='active',
-                grade_and_section=assigned_subject.grade_level
+                grade_and_section__startswith=assigned_subject.grade_level
             ).order_by('fullname')
         else:
-            # If no assignment, show all active students (fallback)
-            students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            # If no assignment, only show students who already have project scores for this subject
+            students = StudentRecord.objects.filter(project_scores__subject=subject).distinct().order_by('fullname')
 
-        project_numbers = ProjectScore.objects.filter(subject=subject).values_list('project_number', flat=True).distinct().order_by('project_number')
-        project_numbers_list = list(project_numbers)
+        # If faculty is an adviser, further filter by their advised sections
+        if request.user.role == 'faculty' and faculty_advised_sections:
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+            students = students.filter(grade_filters)
+
+        # Get the maximum project number for this subject
+        max_project_num = ProjectScore.objects.filter(subject=subject).aggregate(max_num=Max('project_number'))['max_num']
+        if max_project_num:
+            project_numbers_list = list(range(1, max_project_num + 1))
+        else:
+            project_numbers_list = []
 
         student_rows = []
         for student in students:
@@ -2327,6 +2513,24 @@ def attendance(request):
         attendance_sessions__isnull=False
     ).distinct().order_by('name')
 
+    # Check if faculty is an adviser to any section
+    faculty_advised_sections = []
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        
+        # If not an adviser, filter by assigned subjects
+        if not faculty_advised_sections:
+            assignments = FacultyAssignment.objects.filter(faculty=request.user, status='Active')
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+            
+            if assigned_subject_ids:
+                subjects_with_sessions = subjects_with_sessions.filter(id__in=assigned_subject_ids)
+            else:
+                # No assignments or adviser role - show nothing
+                subjects_with_sessions = subjects_with_sessions.none()
     # Get attendance data grouped by subject
     attendance_data = []
     for subject in subjects_with_sessions:
@@ -2340,11 +2544,19 @@ def attendance(request):
         if assigned_subject:
             students = StudentRecord.objects.filter(
                 status='active',
-                grade_and_section=assigned_subject.grade_level
+                grade_and_section__startswith=assigned_subject.grade_level
             ).order_by('fullname')
         else:
-            # If no assignment, show all active students (fallback)
-            students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            # If no assignment, only show students who already have attendance records for this subject
+            students = StudentRecord.objects.filter(weekly_attendance__session__subject=subject).distinct().order_by('fullname')
+
+        # If faculty is an adviser, further filter by their advised sections
+        if request.user.role == 'faculty' and faculty_advised_sections:
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+            students = students.filter(grade_filters)
 
         # Get all weekly sessions for this subject
         sessions = WeeklyAttendanceSession.objects.filter(subject=subject).order_by('week_number')
@@ -2426,6 +2638,24 @@ def add_attendance_session(request):
             week_end_date = form.cleaned_data['week_end_date']
             sessions_per_week = form.cleaned_data['sessions_per_week']
 
+            # Ensure subject is assigned to a grade before creating a session
+            assigned_subject = AssignedSubject.objects.filter(
+                subject=subject,
+                status='Active'
+            ).first()
+
+            if not assigned_subject:
+                msg = 'subject is ccurently not assigned'
+                # For AJAX/modal submissions return JSON so the client can show inline field error
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': msg}, status=400)
+                # For normal form submit, show error and render the add page again
+                messages.error(request, msg)
+                return render(request, 'add_attendance_session.html', {
+                    'form': form,
+                    'tab': 'attendance'
+                })
+
             # Create the weekly session
             session, created = WeeklyAttendanceSession.objects.get_or_create(
                 subject=subject,
@@ -2438,20 +2668,11 @@ def add_attendance_session(request):
             )
 
             if created:
-                # Get assigned grade level for this subject
-                assigned_subject = AssignedSubject.objects.filter(
-                    subject=subject,
-                    status='Active'
-                ).first()
-
-                # Filter students by grade level if subject is assigned
-                if assigned_subject:
-                    students = StudentRecord.objects.filter(
-                        status='active',
-                        grade_and_section=assigned_subject.grade_level
-                    )
-                else:
-                    students = StudentRecord.objects.filter(status='active')
+                # Filter students by grade level assigned to the subject
+                students = StudentRecord.objects.filter(
+                    status='active',
+                    grade_and_section__startswith=assigned_subject.grade_level
+                )
 
                 # Create empty attendance records for all students
                 for student in students:
@@ -2501,10 +2722,11 @@ def mark_attendance(request, session_id):
     if assigned_subject:
         students = StudentRecord.objects.filter(
             status='active',
-            grade_and_section=assigned_subject.grade_level
+            grade_and_section__startswith=assigned_subject.grade_level
         ).order_by('fullname')
     else:
-        students = StudentRecord.objects.filter(status='active').order_by('fullname')
+        # If not assigned, only show students who already have attendance records for the subject
+        students = StudentRecord.objects.filter(weekly_attendance__session__subject=session.subject).distinct().order_by('fullname')
 
     # Get or create attendance records
     attendance_records = []
@@ -2546,10 +2768,12 @@ def save_attendance(request, session_id):
             if assigned_subject:
                 students = StudentRecord.objects.filter(
                     status='active',
-                    grade_and_section=assigned_subject.grade_level
+                    grade_and_section__startswith=assigned_subject.grade_level
                 )
             else:
-                students = StudentRecord.objects.filter(status='active')
+                # If not assigned, only iterate over students who have existing attendance records for the session
+                student_ids = WeeklyAttendanceRecord.objects.filter(session=session).values_list('student_id', flat=True)
+                students = StudentRecord.objects.filter(id__in=student_ids)
 
             for student in students:
                 # Get the attendance record
@@ -2598,6 +2822,46 @@ def delete_student_scores(request, student_id, subject_id):
     )
     return redirect('score')
 
+
+@login_required
+@user_passes_test(faculty_required)
+def delete_score_type(request, score_type, student_id, subject_id):
+    """
+    Delete specific type of scores (quiz/exam/project/attendance) for a student and subject.
+    Returns JSON response for AJAX calls.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+    student = get_object_or_404(StudentRecord, id=student_id)
+    subject = get_object_or_404(Subject, id=subject_id)
+    
+    try:
+        if score_type == 'quiz':
+            count = QuizScore.objects.filter(student=student, subject=subject).count()
+            QuizScore.objects.filter(student=student, subject=subject).delete()
+            message = f"Deleted {count} quiz score(s) for {student.fullname} in {subject.name}"
+        elif score_type == 'exam':
+            count = ExamScore.objects.filter(student=student, subject=subject).count()
+            ExamScore.objects.filter(student=student, subject=subject).delete()
+            message = f"Deleted {count} exam score(s) for {student.fullname} in {subject.name}"
+        elif score_type == 'project':
+            count = ProjectScore.objects.filter(student=student, subject=subject).count()
+            ProjectScore.objects.filter(student=student, subject=subject).delete()
+            message = f"Deleted {count} project score(s) for {student.fullname} in {subject.name}"
+        elif score_type == 'attendance':
+            sessions = WeeklyAttendanceSession.objects.filter(subject=subject)
+            count = WeeklyAttendanceRecord.objects.filter(session__in=sessions, student=student).count()
+            WeeklyAttendanceRecord.objects.filter(session__in=sessions, student=student).delete()
+            message = f"Deleted {count} attendance record(s) for {student.fullname} in {subject.name}"
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid score type'}, status=400)
+        
+        return JsonResponse({'success': True, 'message': message})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 from .models import Student, Score
 
 from django.shortcuts import render
@@ -2611,55 +2875,45 @@ from django.utils import timezone
 def score(request):
     """Score view - accessible by faculty and admin"""
     search = request.GET.get('search', '').strip()
-    # Filter by faculty assigned subjects if user is faculty
+    
+    # First, get subjects that have scores
     if request.user.role == 'faculty':
-        # Get assigned subjects for this faculty
-        assignments = FacultyAssignment.objects.filter(
-            faculty=request.user,
-            status='Active'
-        )
-        assigned_subject_ids = []
-        for assignment in assignments:
-            assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
-        assigned_subject_ids = list(set(assigned_subject_ids))
-
-        if assigned_subject_ids:
-            # Filter students by grade level of assigned subjects
-            assigned_subjects = Subject.objects.filter(id__in=assigned_subject_ids)
-            assigned_grade_levels = AssignedSubject.objects.filter(
-                subject__in=assigned_subjects,
-                status='Active'
-            ).values_list('grade_level', flat=True).distinct()
-
-            # Get students matching assigned grade levels
-            # grade_and_section format is "Grade 7 - A", so we need to check if it starts with the grade level
-            students = StudentRecord.objects.filter(status='active').order_by('fullname')
-            # Filter students whose grade_and_section starts with any assigned grade level
-            filtered_students = []
-            for student in students:
-                if student.grade_and_section:
-                    # Extract grade level from grade_and_section (format: "Grade 7 - A" or just "Grade 7")
-                    student_grade = student.grade_and_section.split(' - ')[0].strip()
-                    if student_grade in assigned_grade_levels:
-                        filtered_students.append(student.id)
-            students = StudentRecord.objects.filter(id__in=filtered_students).order_by('fullname')
-
-            # Filter subjects to only assigned ones
+        # Check if faculty is an adviser to any section
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        
+        if faculty_advised_sections:
+            # Adviser sees all subjects but filtered by their section
             subjects_with_scores = Subject.objects.filter(
-                id__in=assigned_subject_ids
-            ).filter(
                 Q(quiz_scores__isnull=False)
                 | Q(exam_scores__isnull=False)
                 | Q(project_scores__isnull=False)
                 | Q(attendance_sessions__isnull=False)
             ).distinct().order_by('name')
         else:
-            # No assigned subjects - show empty
-            students = StudentRecord.objects.none()
-            subjects_with_scores = Subject.objects.none()
+            # Get assigned subjects for this faculty
+            assignments = FacultyAssignment.objects.filter(
+                faculty=request.user,
+                status='Active'
+            )
+            assigned_subject_ids = []
+            for assignment in assignments:
+                assigned_subject_ids.extend(assignment.subjects.values_list('id', flat=True))
+            assigned_subject_ids = list(set(assigned_subject_ids))
+
+            if assigned_subject_ids:
+                # Filter subjects to only assigned ones that have scores
+                subjects_with_scores = Subject.objects.filter(
+                    id__in=assigned_subject_ids
+                ).filter(
+                    Q(quiz_scores__isnull=False)
+                    | Q(exam_scores__isnull=False)
+                    | Q(project_scores__isnull=False)
+                    | Q(attendance_sessions__isnull=False)
+                ).distinct().order_by('name')
+            else:
+                subjects_with_scores = Subject.objects.none()
     else:
-        # Admin sees all
-        students = StudentRecord.objects.filter(status='active').order_by('fullname')
+        # Admin sees all subjects with scores
         subjects_with_scores = Subject.objects.filter(
             Q(quiz_scores__isnull=False)
             | Q(exam_scores__isnull=False)
@@ -2667,9 +2921,22 @@ def score(request):
             | Q(attendance_sessions__isnull=False)
         ).distinct().order_by('name')
 
-    # Calculate averages per student per subject
+    # Get all active students to check for scores
+    all_students = StudentRecord.objects.filter(status='active').order_by('fullname')
+    
+    # If faculty is an adviser, filter students by their advised sections
+    if request.user.role == 'faculty':
+        faculty_advised_sections = list(Section.objects.filter(adviser=str(request.user.id)).values_list('grade', flat=True).distinct())
+        if faculty_advised_sections:
+            from django.db.models import Q as DjangoQ
+            grade_filters = DjangoQ()
+            for grade in faculty_advised_sections:
+                grade_filters |= DjangoQ(grade_and_section__startswith=grade)
+            all_students = all_students.filter(grade_filters)
+
+    # Build student score data - only include students with actual score averages
     student_score_data = []
-    for student in students:
+    for student in all_students:
         student_subjects = []
         for subject in subjects_with_scores:
             # Calculate quiz average
@@ -2779,17 +3046,20 @@ def score(request):
                 }
             )
 
+    # Filter students to only those with scores
+    students_with_scores = [data['student'] for data in student_score_data]
+    
     if search:
-        students = students.filter(
-            Q(fullname__icontains=search)
-            | Q(grade_and_section__icontains=search)
-            | Q(status__icontains=search)
-        )
+        students_with_scores = [s for s in students_with_scores if (
+            search.lower() in s.fullname.lower() or
+            search.lower() in (s.grade_and_section or '').lower() or
+            search.lower() in s.status.lower()
+        )]
 
-    # Pagination for students
+    # Pagination for students with scores only
     page = request.GET.get('page', 1)
     per_page = 15  # Increased to reduce pagination when not needed
-    paginator = Paginator(students, per_page)
+    paginator = Paginator(students_with_scores, per_page)
     try:
         page_obj = paginator.page(page)
     except:
@@ -2904,15 +3174,20 @@ def add_quiz(request):
                 status='Active'
             ).first()
 
+            # If subject is not assigned, block adding quizzes
+            if not assigned_subject:
+                msg = 'subject is ccurently not assigned'
+                # For AJAX/modal submissions return JSON so the client can show inline field error
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': msg}, status=400)
+                messages.error(request, msg)
+                return redirect('quiz')
+
             # Filter students by grade level if subject is assigned
-            if assigned_subject:
-                students = StudentRecord.objects.filter(
-                    status='active',
-                    grade_and_section=assigned_subject.grade_level
-                ).order_by('fullname')
-            else:
-                # If no assignment, show all active students (fallback)
-                students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            students = StudentRecord.objects.filter(
+                status='active',
+                grade_and_section__startswith=assigned_subject.grade_level
+            ).order_by('fullname')
 
             # Get existing quiz numbers for this subject
             existing_quizzes = QuizScore.objects.filter(subject=subject).values_list('quiz_number', flat=True).distinct()
@@ -2957,15 +3232,16 @@ def save_quiz_scores(request):
             status='Active'
         ).first()
 
+        # If subject is not assigned, block saving quizzes
+        if not assigned_subject:
+            messages.error(request, 'subject is ccurently not assigned')
+            return redirect('quiz')
+
         # Filter students by grade level if subject is assigned
-        if assigned_subject:
-            students = StudentRecord.objects.filter(
-                status='active',
-                grade_and_section=assigned_subject.grade_level
-            )
-        else:
-            # If no assignment, use all active students (fallback)
-            students = StudentRecord.objects.filter(status='active')
+        students = StudentRecord.objects.filter(
+            status='active',
+            grade_and_section__startswith=assigned_subject.grade_level
+        )
 
         try:
             for student in students:
@@ -3002,15 +3278,19 @@ def add_exam(request):
                 status='Active'
             ).first()
 
+            # If subject is not assigned, block adding exams
+            if not assigned_subject:
+                msg = 'subject is ccurently not assigned'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': msg}, status=400)
+                messages.error(request, msg)
+                return redirect('exam')
+
             # Filter students by grade level if subject is assigned
-            if assigned_subject:
-                students = StudentRecord.objects.filter(
-                    status='active',
-                    grade_and_section=assigned_subject.grade_level
-                ).order_by('fullname')
-            else:
-                # If no assignment, show all active students (fallback)
-                students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            students = StudentRecord.objects.filter(
+                status='active',
+                grade_and_section__startswith=assigned_subject.grade_level
+            ).order_by('fullname')
 
             # Get existing exam numbers for this subject
             existing_exams = ExamScore.objects.filter(subject=subject).values_list('exam_number', flat=True).distinct()
@@ -3055,15 +3335,16 @@ def save_exam_scores(request):
             status='Active'
         ).first()
 
+        # If subject is not assigned, block saving exams
+        if not assigned_subject:
+            messages.error(request, 'subject is ccurently not assigned')
+            return redirect('exam')
+
         # Filter students by grade level if subject is assigned
-        if assigned_subject:
-            students = StudentRecord.objects.filter(
-                status='active',
-                grade_and_section=assigned_subject.grade_level
-            )
-        else:
-            # If no assignment, use all active students (fallback)
-            students = StudentRecord.objects.filter(status='active')
+        students = StudentRecord.objects.filter(
+            status='active',
+            grade_and_section__startswith=assigned_subject.grade_level
+        )
 
         try:
             for student in students:
@@ -3100,15 +3381,19 @@ def add_project(request):
                 status='Active'
             ).first()
 
+            # If subject is not assigned, block adding projects
+            if not assigned_subject:
+                msg = 'subject is ccurently not assigned'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': msg}, status=400)
+                messages.error(request, msg)
+                return redirect('project')
+
             # Filter students by grade level if subject is assigned
-            if assigned_subject:
-                students = StudentRecord.objects.filter(
-                    status='active',
-                    grade_and_section=assigned_subject.grade_level
-                ).order_by('fullname')
-            else:
-                # If no assignment, show all active students (fallback)
-                students = StudentRecord.objects.filter(status='active').order_by('fullname')
+            students = StudentRecord.objects.filter(
+                status='active',
+                grade_and_section__startswith=assigned_subject.grade_level
+            ).order_by('fullname')
 
             # Get existing project numbers for this subject
             existing_projects = ProjectScore.objects.filter(subject=subject).values_list('project_number', flat=True).distinct()
@@ -3153,15 +3438,16 @@ def save_project_scores(request):
             status='Active'
         ).first()
 
+        # If subject is not assigned, block saving projects
+        if not assigned_subject:
+            messages.error(request, 'subject is ccurently not assigned')
+            return redirect('project')
+
         # Filter students by grade level if subject is assigned
-        if assigned_subject:
-            students = StudentRecord.objects.filter(
-                status='active',
-                grade_and_section=assigned_subject.grade_level
-            )
-        else:
-            # If no assignment, use all active students (fallback)
-            students = StudentRecord.objects.filter(status='active')
+        students = StudentRecord.objects.filter(
+            status='active',
+            grade_and_section__startswith=assigned_subject.grade_level
+        )
 
         try:
             for student in students:
@@ -3675,9 +3961,19 @@ def edit_quiz_scores(request, student_id, subject_id):
         except Exception as e:
             messages.error(request, f'Error updating quiz scores: {str(e)}')
 
-    # Get all quiz scores for this student and subject
-    quiz_scores = QuizScore.objects.filter(student=student, subject=subject).order_by('quiz_number')
-    quiz_dict = {qs.quiz_number: qs.score for qs in quiz_scores}
+    # Get the maximum quiz number for this subject
+    max_quiz_num = QuizScore.objects.filter(subject=subject).aggregate(max_num=Max('quiz_number'))['max_num']
+    if not max_quiz_num:
+        max_quiz_num = 0
+    
+    # Build quiz_dict with all quiz numbers from 1 to max_quiz_num
+    quiz_dict = {}
+    for quiz_num in range(1, max_quiz_num + 1):
+        try:
+            quiz_score = QuizScore.objects.get(student=student, subject=subject, quiz_number=quiz_num)
+            quiz_dict[quiz_num] = quiz_score.score
+        except QuizScore.DoesNotExist:
+            quiz_dict[quiz_num] = None
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'modals/edit_quiz_scores_modal.html', {
@@ -3719,8 +4015,19 @@ def edit_exam_scores(request, student_id, subject_id):
         except Exception as e:
             messages.error(request, f'Error updating exam scores: {str(e)}')
 
-    exam_scores = ExamScore.objects.filter(student=student, subject=subject).order_by('exam_number')
-    exam_dict = {es.exam_number: es.score for es in exam_scores}
+    # Get the maximum exam number for this subject
+    max_exam_num = ExamScore.objects.filter(subject=subject).aggregate(max_num=Max('exam_number'))['max_num']
+    if not max_exam_num:
+        max_exam_num = 0
+    
+    # Build exam_dict with all exam numbers from 1 to max_exam_num
+    exam_dict = {}
+    for exam_num in range(1, max_exam_num + 1):
+        try:
+            exam_score = ExamScore.objects.get(student=student, subject=subject, exam_number=exam_num)
+            exam_dict[exam_num] = exam_score.score
+        except ExamScore.DoesNotExist:
+            exam_dict[exam_num] = None
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'modals/edit_exam_scores_modal.html', {
@@ -3762,8 +4069,19 @@ def edit_project_scores(request, student_id, subject_id):
         except Exception as e:
             messages.error(request, f'Error updating project scores: {str(e)}')
 
-    project_scores = ProjectScore.objects.filter(student=student, subject=subject).order_by('project_number')
-    project_dict = {ps.project_number: ps.score for ps in project_scores}
+    # Get the maximum project number for this subject
+    max_project_num = ProjectScore.objects.filter(subject=subject).aggregate(max_num=Max('project_number'))['max_num']
+    if not max_project_num:
+        max_project_num = 0
+    
+    # Build project_dict with all project numbers from 1 to max_project_num
+    project_dict = {}
+    for project_num in range(1, max_project_num + 1):
+        try:
+            project_score = ProjectScore.objects.get(student=student, subject=subject, project_number=project_num)
+            project_dict[project_num] = project_score.score
+        except ProjectScore.DoesNotExist:
+            project_dict[project_num] = None
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'modals/edit_project_scores_modal.html', {

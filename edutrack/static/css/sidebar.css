@@ -79,6 +79,11 @@ h2 {
     display: none;
 }
 
+/* Fallback: hide submenu entirely when sidebar is collapsed to avoid visible text links */
+#sidebar.close .sub-menu {
+    display: none !important;
+}
+
 #sidebar svg {
     flex-shrink: 0;
     fill: var(--sidebar-text);
@@ -164,6 +169,7 @@ h2 {
     border: none;
     font: inherit;
     cursor: pointer;
+
 }
 
 .dropdown-btn svg {

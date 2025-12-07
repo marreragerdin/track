@@ -26,6 +26,40 @@
         color: #152E21;
         font-weight: 500;
     }
+    .view-value { font-weight: 400; color: #1E1E1E; }
+
+    /* Adviser alert styling (match faculty page) */
+    .adviser-alert {
+        color: #152E21;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 2px solid #152E21;
+    }
+
+    .adviser-alert h4 {
+        color: #152E21;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .adviser-alert ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .adviser-alert p {
+        margin-top: 2rem;
+    }
+
+    .adviser-alert li {
+        color: #152E21;
+        margin-bottom: 0.25rem;
+    }
+
+    .adviser-alert small {
+        color: #1a3a28;
+        opacity: 0.9;
+    }
 
 .tab-search {
     background: #F6F5AE;
@@ -33,8 +67,8 @@
     padding: 20px;
     gap: 8px;
     align-items: center;
-    margin-top: 1rem;
 }
+
 .tab-search input[type="text"] {
     padding: 6px 10px;
     border-radius: 999px;
@@ -92,6 +126,7 @@
         color: #152E21;
         font-weight: bold;
     }
+    
     .user-table thead th {
         padding: 20px;
         font-size: 0.8rem;
@@ -145,7 +180,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         padding: 0;
         border: none;
         background: #fff;
@@ -153,7 +188,7 @@
         text-decoration: none;
     }
     .btn-icon-view {
-        background-color: #4CAF50;
+        background-color: #B7F29B;
         color: #1E1E1E;
     }
     .btn-icon-view:hover {
@@ -172,6 +207,7 @@
     }
     .btn-icon-delete:hover {
         background: #ffe5e1;
+        color: #1E1E1E !important;
     }
 
     /* Pagination Styles */
@@ -199,6 +235,10 @@
         background-color: #152E21;
         color: #F6F5AE;
         font-weight: 600;
+    }
+
+    .user-data-table {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
     }
 
     /* Responsive Styles */
@@ -233,11 +273,6 @@
         .user-table thead th,
         .user-table tbody td {
             font-size: 0.75rem;
-        }
-        .btn-icon {
-            width: 2rem;
-            height: 2rem;
-            font-size: 1rem;
         }
     }
 
@@ -325,6 +360,20 @@
             </button>
         </div>
 
+        <!-- Adviser Information Alert -->
+        {% if is_adviser %}
+        <div class="adviser-alert" role="alert">
+            <h4 class="alert-heading"><i class="fas fa-star"></i> Adviser View</h4>
+            <p>You are currently viewing students from the following section(s) you advise:</p>
+            <ul>
+                {% for section in advised_sections %}
+                <li><strong>{{ section.grade }} - {{ section.name }}</strong></li>
+                {% endfor %}
+            </ul>
+            <p class="mb-0"><small>Only students in your advised section(s) are displayed below.</small></p>
+        </div>
+        {% endif %}
+
         <div class="user-data-table">
             <form method="get" class="tab-search">
                 <input type="text" name="search" placeholder="Search students..." value="{{ search }}">
@@ -347,6 +396,7 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         {% for student in page_obj %}
                         <tr>
@@ -371,41 +421,65 @@
                                     <i class="fa-regular fa-eye"></i>
                                 </button>
 
-<!--      modal view student-->
-  <div class="modal" id ="mymodal{{student.id}}" tabindex="-1" aria-labelledby="mymodalLabel{{student.id}}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          Student: {{ student.fullname}}
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <ul class="list-unstyled">
-          <li>ID: <strong> {{ student.student_id}} </strong></li>
-          <li>Full Name: <strong> {{ student.fullname}}</strong></li>
-          <li>Grade & Section: <strong> {{ student.grade_and_section}}</strong></li>
-          <li>Gender: <strong> {{ student.gender}}</strong></li>
-          <li>Age: <strong> {{ student.age}}</strong></li>
-          <li>Address: <strong> {{ student.address}}</strong></li>
-          <li>Guardian: <strong> {{ student.parent}}</strong></li>
-          <li>Guardian Contact: <strong> {{ student.parent_contact}}</strong></li>
-          <li>Status: <strong> {{ student.status}}</strong></li>
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-      </div>
+<!--      modal view student -->
+    <div class="modal fade" id="mymodal{{student.id}}" tabindex="-1" aria-labelledby="mymodalLabel{{student.id}}" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content user-modal">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user fa-fw me-2"></i>Student: {{ student.fullname}}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-id-badge me-2"></i>ID</label>
+                        <div><span class="view-value">{{ student.student_id }}</span></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-user me-2"></i>Full Name</label>
+                        <div><span class="view-value">{{ student.fullname }}</span></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-school me-2"></i>Grade & Section</label>
+                        <div><span class="view-value">{{ student.grade_and_section }}</span></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-venus-mars me-2"></i>Gender</label>
+                        <div><span class="view-value">{{ student.gender }}</span></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-birthday-cake me-2"></i>Age</label>
+                        <div><span class="view-value">{{ student.age }}</span></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-circle-notch me-2"></i>Status</label>
+                        <div><span class="view-value">{{ student.status }}</span></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label"><i class="fas fa-map-marker-alt me-2"></i>Address</label>
+                        <div><span class="view-value">{{ student.address }}</span></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-user-friends me-2"></i>Guardian</label>
+                        <div><span class="view-value">{{ student.parent }}</span></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-phone me-2"></i>Guardian Contact</label>
+                        <div><span class="view-value">{{ student.parent_contact }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 <!--      modal delete student-->
       <div class="modal" id ="delete{{student.id}}" tabindex="-1" aria-labelledby="mymodalLabel{{student.id}}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content user-modal">
       <div class="modal-header">
         <h5 class="modal-title">
           Student: {{ student.fullname}}
@@ -545,7 +619,7 @@
 <!-- Add Student Modal - will be loaded dynamically -->
 <div class="modal fade" id="addStudentRecordModal" tabindex="-1" aria-labelledby="addStudentRecordModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-body">
                 <div class="text-center">
                     <div class="spinner-border" role="status">
@@ -691,11 +765,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Replace the entire modal-content HTML with the source's modal-content
-            targetModalContent.innerHTML = sourceModalContent.innerHTML;
-            
+            // If the source modal requests a light backdrop, paint any existing/backdrops and
+            // observe for newly-added backdrop nodes so they get the same color while open.
+            try {
+                const sourceModal = fullModal || tempDiv.querySelector('.modal');
+                if (sourceModal && sourceModal.getAttribute && sourceModal.getAttribute('data-light-backdrop') === 'true') {
+                    const paint = (bd) => { try { bd.style.backgroundColor = 'rgba(0,0,0,0.18)'; } catch(e){} };
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(paint);
+
+                    // Observe DOM for newly-added backdrop nodes (Bootstrap may add them after show)
+                    const mo = new MutationObserver((mutations) => {
+                        for (const m of mutations) {
+                            for (const n of m.addedNodes) {
+                                if (n && n.nodeType === 1 && n.classList && n.classList.contains('modal-backdrop')) {
+                                    paint(n);
+                                }
+                            }
+                        }
+                    });
+                    mo.observe(document.body, { childList: true });
+
+                    // Disconnect the observer once this modal is hidden so we don't leak observers
+                    modalElement.addEventListener('hidden.bs.modal', function cleanup() {
+                        try { mo.disconnect(); } catch(e) {}
+                    }, { once: true });
+                }
+            } catch (e) { console.warn('backdrop paint error', e); }
+
+            // Inject the source modal-content into a wrapper so we can animate it
+            targetModalContent.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'injected';
+            wrapper.innerHTML = sourceModalContent.innerHTML;
+            targetModalContent.appendChild(wrapper);
+            // Ensure modal-scoped styles apply
+            targetModalContent.classList.add('user-modal');
+
             // Run any inline scripts inside the injected content
-            runInlineScripts(targetModalContent);
+            runInlineScripts(wrapper);
+            // trigger slide-in animation
+            requestAnimationFrame(() => wrapper.classList.add('show'));
 
             // Call initialization if exists
             if (typeof initStudentRecordModal === 'function') {
@@ -901,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% for student in page_obj %}
 <div class="modal fade" id="editStudentRecordModal{{ student.id }}" tabindex="-1" aria-labelledby="editStudentRecordModal{{ student.id }}Label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-body">
                 <div class="text-center">
                     <div class="spinner-border" role="status">
@@ -913,5 +1023,21 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 {% endfor %}
+
+<script>
+// Move inline small modals (view/delete) out to document.body to avoid clipping on mobile
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const inlineModals = document.querySelectorAll('.modal[id^="mymodal"], .modal[id^="delete"]');
+        inlineModals.forEach(function(m) {
+            if (m.parentElement && m.parentElement !== document.body) {
+                document.body.appendChild(m);
+            }
+        });
+    } catch (e) {
+        console && console.warn && console.warn('move-inline-modals error', e);
+    }
+});
+</script>
 
 {% endblock %}

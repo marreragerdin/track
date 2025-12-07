@@ -75,6 +75,7 @@ path('academic_setup/grading/delete/<int:pk>/', views.delete_grading, name='dele
     path('score/edit/exam/<int:student_id>/<int:subject_id>/', views.edit_exam_scores, name='edit_exam_scores'),
     path('score/edit/project/<int:student_id>/<int:subject_id>/', views.edit_project_scores, name='edit_project_scores'),
     path('score/edit/attendance/<int:student_id>/<int:subject_id>/', views.edit_attendance_scores, name='edit_attendance_scores'),
+    path('score/delete/<str:score_type>/<int:student_id>/<int:subject_id>/', views.delete_score_type, name='delete_score_type'),
 
     path('quiz/', views.quiz, name='quiz'),
     path('quiz/add/', views.add_quiz, name='add_quiz'),
@@ -92,6 +93,7 @@ path('academic_setup/grading/delete/<int:pk>/', views.delete_grading, name='dele
     
     # API endpoints
     path('api/sections/', views.get_sections_by_grade, name='get_sections_by_grade'),
+    path('api/subject-assigned/', views.api_subject_assigned, name='api_subject_assigned'),
 
 
 

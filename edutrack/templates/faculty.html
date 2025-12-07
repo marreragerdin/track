@@ -4,97 +4,439 @@
 {% block title %}Faculty Dashboard{% endblock %}
 
 {% block content %}
-<h1>Faculty Dashboard</h1>
-<p class="text-muted">Welcome, {{ user.get_full_name|default:user.username }}</p>
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
 
-<!-- Assigned Subjects Card -->
-<div class="row mt-3">
-    <div class="col-md-12">
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-book"></i> My Assigned Subjects</h5>
-            </div>
-            <div class="card-body">
-                {% if assigned_subjects %}
-                <div class="row">
-                    {% for subject in assigned_subjects %}
-                    <div class="col-md-3 mb-2">
-                        <div class="card border-primary">
-                            <div class="card-body">
-                                <h6 class="card-title">{{ subject.name }}</h6>
-                                <p class="card-text small text-muted">{{ subject.code }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+    .dashboard-heading {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .faculty-heading {
+        color: #152E21;
+        font-weight: 500;
+        font-size: 1.75rem;
+        font-family: Inter, sans-serif;
+        margin-bottom: 0.5rem;
+    }
+
+    .faculty-subheading {
+        color: #616161;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+
+    .adviser-alert {
+        color: #152E21;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 2px solid #152E21;
+    }
+
+    .adviser-alert h4 {
+        color: #152E21;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .adviser-alert ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .adviser-alert p {
+        margin-top: 2rem;
+    }
+    .adviser-alert li {
+        color: #152E21;
+        margin-bottom: 0.25rem;
+    }
+
+    .adviser-alert small {
+        color: #1a3a28;
+        opacity: 0.9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card {
+        background-color: #F6F5AE;
+        color: #152E21;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 2rem;
+    }
+
+    .stat-card .stat-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .stat-card .stat-title i {
+        color: #152E21;
+        font-size: 1.25rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #152E21;
+    }
+
+    .subjects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .subject-card {
+        background: white;
+        border: 1px solid #808080;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .subject-card:hover {
+        box-shadow: 0 4px 12px rgba(180, 217, 107, 0.2);
+        border-color: #152E21;
+    }
+
+    .subject-card .subject-name {
+        font-weight: 600;
+        color: #152E21;
+        margin-bottom: 0.5rem;
+    }
+
+    .subject-card .subject-code {
+        font-size: 0.85rem;
+        color: #616161;
+    }
+
+    .section-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background-color: #F6F5AE;
+        color: #152E21;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header i {
+        color: #152E21;
+    }
+
+    .section-body{
+        padding: 1.5rem;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .faculty-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .faculty-table thead {
+        background-color: #d9d9d9;
+        color: #152E21;
+    }
+
+    .faculty-table thead th {
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        
+        text-align: left;
+    }
+
+    .faculty-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #1E1E1E;
+        font-size: 0.9rem;
+    }
+
+    .faculty-table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    .quick-links {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-link-btn {
+        background-color: #B2C85C;
+        color: #152E21;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .quick-link-btn:hover {
+        background-color: #a5c757;
+        color: #152E21;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        text-decoration: none;
+    }
+
+    .badge-section {
+        background-color: #F6F5AE;
+        color: #152E21;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-active {
+        background-color: #b4d96b;
+        color: #152E21;
+    }
+
+    .badge-inactive {
+        background-color: #d9d9d9;
+        color: #616161;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .subjects-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        .quick-links {
+            flex-direction: column;
+        }
+        .quick-link-btn {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+
+    .faculty-table .badge-section,
+    .faculty-table .badge-active,
+    .faculty-table .badge-inactive {
+        background: transparent !important;
+        color: inherit !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        font-weight: 600 !important;
+    }
+
+    @media (max-width: 620px) {
+        .faculty-table thead { display: none; }
+        .faculty-table, .faculty-table tbody, .faculty-table tr, .faculty-table td { display: block; width: 100%; }
+        .faculty-table tr { margin-bottom: 1rem; border: 1px solid #f0f0f0; border-radius: 8px; padding: 0.5rem; }
+        .faculty-table td { padding: 0.6rem 0.75rem; border: none; display: flex; justify-content: space-between; }
+        .faculty-table td::before { content: attr(data-label); color: #616161; font-weight: 600; margin-right: 0.75rem; }
+        .quick-links-container { padding: 0.5rem; }
+        .btn-icon { width: auto; height: auto; padding: 6px 8px; font-size: 0.85rem; border-radius: 6px; }
+    }
+
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        padding: 0;
+        border: none;
+        background: #fff;
+        color: inherit;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+    }
+
+    .btn-icon-edit { background-color: #B2C85C; color: #1E1E1E; border: none; }
+    .btn-icon-edit:hover { background: #d9d9d990; color: #1E1E1E; }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-heading">
+        <h1 class="faculty-heading">Faculty Dashboard</h1>
+        <p class="faculty-subheading">Welcome, {{ user.get_full_name|default:user.username }}</p>
+    </div>
+
+    <!-- Adviser Information Card (if applicable) -->
+    {% if is_adviser %}
+    <div class="adviser-alert">
+        <h4><i class="fas fa-star"></i> Adviser Information</h4>
+        <p style="margin-bottom: 0.5rem;">You are currently an adviser to the following section(s):</p>
+        <ul>
+            {% for section in advised_sections %}
+            <li><strong>{{ section.grade }} - {{ section.name }}</strong> ({{ section.number_of_students }} students)</li>
+            {% endfor %}
+        </ul>
+        <p style="margin-bottom: 0; margin-top: 2rem;"><small>You can only manage students and scores for the section(s) you advise.</small></p>
+    </div>
+    {% endif %}
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title"><i class="fas fa-user-graduate"></i><span>{% if is_adviser %}Students in My Section(s){% else %}Total Students{% endif %}</span></div>
+            <div class="stat-value">{{ total_students }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title"><i class="fas fa-book"></i><span>Assigned Subjects</span></div>
+            <div class="stat-value">{{ assigned_subjects|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title"><i class="fas fa-tasks"></i><span>My Sections</span></div>
+            <div class="stat-value">{% if is_adviser %}{{ advised_sections|length }}{% else %}—{% endif %}</div>
+        </div>
+    </div>
+
+    <!-- Assigned Subjects -->
+    <div class="section-container">
+        <div class="section-header">
+            <i class="fas fa-book"></i> My Assigned Subjects
+        </div>
+        <div class="section-body">
+            {% if assigned_subjects %}
+            <div class="subjects-grid">
+                {% for subject in assigned_subjects %}
+                <div class="subject-card">
+                    <div class="subject-name">{{ subject.name }}</div>
+                    <div class="subject-code">{{ subject.code }}</div>
                 </div>
-                {% else %}
-                <p class="text-muted">No subjects assigned yet.</p>
-                {% endif %}
+                {% endfor %}
             </div>
+            {% else %}
+            <p style="color: #616161; margin: 0;">No subjects assigned yet.</p>
+            {% endif %}
         </div>
     </div>
-</div>
 
-<!-- Statistics Card -->
-<div class="row mt-3">
-    <div class="col-md-4">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-user-graduate"></i> Total Students</h5>
-                <h2 class="card-text">{{ total_students }}</h2>
+    <!-- Students Table (if adviser) -->
+    {% if is_adviser and student_records %}
+    <div class="section-container">
+        <div class="section-header">
+            <i class="fas fa-users"></i> Students in Your Advised Section(s)
+        </div>
+        <div class="section-record">
+            <div class="table-wrapper">
+                <table class="faculty-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Grade & Section</th>
+                            <th>Gender</th>
+                            <th>Age</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in student_records %}
+                        <tr>
+                            <td data-label="Student ID">{{ student.student_id }}</td>
+                            <td data-label="Full Name">{{ student.fullname }}</td>
+                            <td data-label="Grade & Section"><span class="badge-section">{{ student.grade_and_section }}</span></td>
+                            <td data-label="Gender">{{ student.gender }}</td>
+                            <td data-label="Age">{{ student.age }}</td>
+                            <td data-label="Status">
+                                {% if student.status == 'active' %}
+                                    <span class="badge-section badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge-section badge-inactive">{{ student.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Actions">
+                                <a href="{% url 'edit_student' student.id %}" class="btn-icon btn-icon-edit" aria-label="Edit student {{ student.fullname }}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #616161;">No students in your advised section(s)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-book"></i> Assigned Subjects</h5>
-                <h2 class="card-text">{{ assigned_subjects|length }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-tasks"></i> Quick Actions</h5>
-                <div class="mt-2">
-                    <a href="{% url 'student_record' %}" class="btn btn-light btn-sm">View Students</a>
-                    <a href="{% url 'score' %}" class="btn btn-light btn-sm">View Scores</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    {% endif %}
 
-<!-- Quick Links -->
-<div class="row mt-3">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Quick Links</h5>
-            </div>
-            <div class="card-body">
-                <a href="{% url 'student_record' %}" class="btn btn-primary me-2">
+    <!-- Quick Links -->
+    <div class="section-container">
+        <div class="section-header">
+            <i class="fas fa-link"></i> Quick Links
+        </div>
+        <div class="section-body quick-links-container">
+            <div class="quick-links">
+                <a href="{% url 'student_record' %}" class="quick-link-btn">
                     <i class="fas fa-users"></i> Student Records
                 </a>
-                <a href="{% url 'score' %}" class="btn btn-info me-2">
+                <a href="{% url 'score' %}" class="quick-link-btn">
                     <i class="fas fa-chart-line"></i> Scores
                 </a>
-                <a href="{% url 'quiz' %}" class="btn btn-secondary me-2">
+                <a href="{% url 'quiz' %}" class="quick-link-btn">
                     <i class="fas fa-pencil-alt"></i> Quiz
                 </a>
-                <a href="{% url 'exam' %}" class="btn btn-secondary me-2">
+                <a href="{% url 'exam' %}" class="quick-link-btn">
                     <i class="fas fa-file-alt"></i> Exam
                 </a>
-                <a href="{% url 'project' %}" class="btn btn-secondary me-2">
+                <a href="{% url 'project' %}" class="quick-link-btn">
                     <i class="fas fa-project-diagram"></i> Project
                 </a>
-                <a href="{% url 'attendance' %}" class="btn btn-secondary">
+                <a href="{% url 'attendance' %}" class="quick-link-btn">
                     <i class="fas fa-calendar-check"></i> Attendance
                 </a>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

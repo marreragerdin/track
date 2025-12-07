@@ -1,0 +1,591 @@
+/* modal_common.css - shared Add User modal styles (canonical base) */
+
+/* User modal base (moved from add_user_modal.html) */
+.user-modal {
+    background-color: #FFFFFF;
+    color: #152E21;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+}
+
+.user-modal .modal-header {
+    background-color: #F6F5AE !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+/* Make modal header stick to the top of the modal when scrolling body */
+.user-modal .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.user-modal .modal-header,
+.user-modal .modal-body,
+.user-modal .modal-footer {
+    background: transparent;
+    border: none;
+    color: inherit;
+}
+.user-modal .modal-header {
+    border-bottom: none;
+    padding: 1rem 1.25rem;
+}
+.user-modal .modal-title {
+    color: #152E21;
+    font-weight: 600;
+}
+
+/* Form inputs: only inputs get borders */
+.user-modal input[type="text"],
+.user-modal input[type="email"],
+.user-modal input[type="password"],
+.user-modal input[type="number"],
+.user-modal textarea,
+.user-modal .form-control,
+.user-modal .form-select {
+    border: 2px solid #152E21 !important;
+    border-radius: 10px !important;
+    outline: none !important;
+    background-color: #FFFFFF !important;
+    font-size: 0.9rem !important;
+    box-shadow: none !important;
+    margin-bottom: 0.8rem;
+}
+
+/* Keep checkbox / radio appearance reasonable */
+.user-modal input[type="checkbox"],
+.user-modal input[type="radio"] {
+    width: auto !important;
+    height: auto !important;
+    margin-right: 0.5rem;
+    border: none !important;
+}
+
+/* Buttons in modal footer (custom, not bootstrap) */
+.user-modal .modal-footer .modal-save {
+    width: 120px;
+    height: 2.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #152E21;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-modal .modal-footer .modal-save:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+}
+
+    /* Table styles inside modals should match the Scores page */
+.user-modal .modal-footer .modal-cancel {
+    width: 120px;
+    height: 2.5rem;
+    border: 2px solid #152E21;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #152E21;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-modal .modal-footer .modal-cancel:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+}
+
+/* Muted/help text spacing inside modal */
+.user-modal .form-text {
+    margin-top: 0.5rem;
+    color: rgba(21,46,33,0.75);
+}
+
+/* Ensure modal dialog spacing looks good */
+.user-modal .modal-body { padding: 1.25rem 1.5rem; }
+.user-modal .modal-footer { padding: 1rem 1.5rem; gap: 0.5rem; }
+
+/* Make modal close button visible on this palette */
+.user-modal .btn-close {
+    filter: none;
+}
+
+.text-muted {
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.user-modal .form-check-input:checked {
+    background-color: #F6F5AE;
+    border-color: #152E21;
+}
+
+.user-modal .btn-action, .user-modal .btn-action-predict {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    background: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.user-modal .btn-action-predict {
+    background-color: #152E21;
+    color: #F6F5AE;
+}
+.user-modal .btn-action-predict:hover {
+    background: #d9d9d990;
+    color: #1E1E1E;
+}
+
+/* Shared modal styles - based on add_user_modal inline CSS */
+.user-modal {
+    background-color: #FFFFFF;
+    color: #152E21;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+}
+.user-modal .modal-header {
+    background-color: #F6F5AE !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+.user-modal .modal-header,
+.user-modal .modal-body,
+.user-modal .modal-footer {
+    background: transparent;
+    border: none;
+    color: inherit;
+}
+.user-modal .modal-header { border-bottom: none; padding: 1rem 1.25rem; }
+.user-modal .modal-title { color: #152E21; font-weight: 600; }
+
+/* Form inputs: only inputs get borders */
+.user-modal input[type="text"],
+.user-modal input[type="email"],
+.user-modal input[type="password"],
+.user-modal input[type="number"],
+.user-modal textarea,
+.user-modal .form-control,
+.user-modal .form-select {
+    border: 2px solid #152E21 !important;
+    border-radius: 10px !important;
+    outline: none !important;
+    background-color: #FFFFFF !important;
+    font-size: 0.9rem !important;
+    box-shadow: none !important;
+    margin-bottom: 0.8rem;
+}
+
+/* Custom styled checkbox (appearance:none) with SVG checkmark */
+.user-modal .form-check {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding-left: 0;
+}
+
+
+.user-modal input[type="checkbox"] {
+    --bs-form-check-bg: #F6F5AE;
+    flex-shrink: 0;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin: 0; /* remove top offset that caused staggered layout */
+    vertical-align: middle;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--bs-form-check-bg) !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 65% 65%;
+    border: 2px solid #152E21 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border-radius: 6px !important;
+    display: inline-block;
+}
+
+/* Checked state: draw a dark green svg checkmark on the yellow background */
+.user-modal input[type="checkbox"]:checked {
+    background-color: var(--bs-form-check-bg) !important;
+    border-color: #152E21 !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='%23152E21' d='M6.173 11.414L3.06 8.3 1.646 9.714 6.173 14.24 14.354 6.06 12.94 4.646z'/></svg>");
+}
+
+/* Focus ring for accessibility */
+.user-modal input[type="checkbox"]:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(21,46,33,0.08) !important;
+}
+
+/* Radios keep a standard appearance but inherit sizing */
+.user-modal input[type="radio"] {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.user-modal .form-check-label { margin: 0; }
+
+/* Buttons in modal footer (custom) */
+.user-modal .modal-footer .modal-save {
+    width: 120px;
+    height: 2.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #152E21;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.user-modal .modal-footer .modal-save:hover { transform: translateY(-1px); filter: brightness(0.95); }
+.user-modal .modal-footer .modal-cancel {
+    width: 120px;
+    height: 2.5rem;
+    border: 2px solid #152E21;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #152E21;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.user-modal .modal-footer .modal-cancel:hover { transform: translateY(-1px); filter: brightness(0.95); }
+
+.user-modal .form-text { margin-top: 0.5rem; color: rgba(21,46,33,0.75); }
+.user-modal .modal-body { padding: 1.25rem 1.5rem; }
+.user-modal .modal-footer { padding: 1rem 1.5rem; gap: 0.5rem; }
+.user-modal .btn-close { filter: none; }
+.text-muted { margin-top: 0.5rem; }
+.form-check-input:checked { background-color: #F6F5AE; border-color: #152E21; }
+
+/* Ensure form-check inputs inside user-modal also get consistent checked visuals */
+.user-modal .form-check-input:checked { background-color: #F6F5AE !important; border-color: #152E21 !important; }
+
+/* Also apply Scores page table styling to bootstrap table variants inside modals */
+.user-modal table,
+.user-modal .table,
+.user-modal .table-striped,
+.user-modal .table-bordered {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+}
+.user-modal thead {
+    background: #D9D9D9;
+    color: #152E21;
+    font-weight: bold;
+}
+.user-modal thead th {
+    padding: 20px;
+    font-size: 0.8rem;
+    text-align: left;
+}
+.user-modal tbody td {
+    padding: 20px;
+    font-size: 0.8rem;
+    background-color: #FFFFFF;
+    max-width: 180px;
+    word-wrap: break-word;
+    white-space: normal;
+    color: #1E1E1E;
+}
+.user-modal .table-striped tbody tr:nth-child(even) {
+    background: #fbfbfb;
+}
+
+.user-modal .table-bordered,
+.user-modal table.table-bordered {
+    border: none !important;
+}
+.user-modal .table-bordered th,
+.user-modal .table-bordered td,
+.user-modal table.table-bordered th,
+.user-modal table.table-bordered td {
+    border: none !important;
+}
+
+/* Convert bootstrap badges inside modals to capsule-style status badges */
+.user-modal .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    font-family: Poppins, sans-serif;
+}
+.user-modal .badge.bg-danger { background-color: #EF5353; color: #FFFFFF; }
+.user-modal .badge.bg-warning { background-color: #F39E4D; color: #FFFFFF; }
+.user-modal .badge.bg-info { background-color: #F0EB5B; color: #FFFFFF; }
+.user-modal .badge.bg-success { background-color: #a8cc45; color: #FFFFFF; }
+
+/* Status capsule: remove border/outline so capsule is flat */
+.user-modal .status-capsule {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 2rem 0 !important;
+    margin-top: 0 !important;
+}
+
+.user-table thead {
+    background: #D9D9D9;
+    color: #152E21;
+    font-weight: bold;
+}
+.user-table thead th {
+    padding: 20px;
+    font-size: 0.8rem;
+    text-align: left;
+}
+.user-table tbody td {
+    padding: 20px;
+    font-size: 0.8rem;
+    background-color: #FFFFFF;
+    max-width: 180px;
+    word-wrap: break-word;
+    white-space: normal;
+    color: #1E1E1E;
+}
+.user-table tbody tr:nth-child(even) { background: #fbfbfb; }
+.user-table tbody td.actions-cell { white-space: nowrap; max-width: none; }
+
+.action-buttons { display:flex; gap:8px; justify-content:flex-start; }
+.btn-action {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    padding: 0;
+    border-width: 2px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-action i { font-size: 1.5rem; }
+.btn-action svg { width:24px; height:24px; }
+.global-button-style,
+button:not(.dropdown-btn, #hamburger-btn, .dropdown-open, .search-btn),
+.btn:not(.dropdown-btn, #hamburger-btn),
+.btn-action:not(.dropdown-btn, #hamburger-btn),
+.modal-save:not(.dropdown-btn, #hamburger-btn),
+.modal-cancel:not(.dropdown-btn, #hamburger-btn),
+.view-all-btn:not(.dropdown-btn, #hamburger-btn),
+.timeline-btn:not(.dropdown-btn, #hamburger-btn),
+.btn-action-predict:not(.dropdown-btn, #hamburger-btn),
+.btn-action-edit:not(.dropdown-btn, #hamburger-btn),
+.btn-action-delete:not(.dropdown-btn, #hamburger-btn),
+.btn-icon:not(.dropdown-btn, #hamburger-btn),
+.btn-icon-delete:not(.dropdown-btn, #hamburger-btn) {
+    border-radius: 8px;
+    transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Hover/active behavior consistent across pages and modals */
+button:hover:not(.search-btn), .btn:hover, .btn-action-delete:hover, .btn-action:hover, .modal-save:hover, .modal-cancel:hover, .view-all-btn:hover, .timeline-btn:hover, .btn-icon:hover, .btn-icon-delete:hover {
+    transform: translateY(-2px);
+    filter: brightness(0.95);
+}
+
+/* Keep anchor-styled buttons free of underlines */
+.btn, .modal-cancel, .view-all-btn { text-decoration: none !important; }
+
+/* Make sure small icon action buttons remain compact */
+.btn-action { padding: 0.35rem; width: 2.5rem; height: 2.5rem; }
+
+/* Slightly reduce hover translate for mobile (touch) to avoid jitter */
+@media (hover: none) {
+    button:hover, .btn:hover, .btn-action:hover, .modal-save:hover, .modal-cancel:hover { transform: none; }
+}
+.btn-action-predict { background-color: #152E21; color: #F6F5AE; }
+.btn-action-predict:hover { background: #d9d9d990; color: #1E1E1E; }
+.btn-action-edit { background-color: #B2C85C; color: #1E1E1E; }
+.btn-action-delete { background-color: #EF5353; color: #1E1E1E !important; }
+.btn-icon-delete { background-color: #EF5353; color: #1E1E1E !important; }
+
+
+/* Ensure action buttons (delete/edit/predict) always show the hover lift and hover color */
+.btn-action-delete:hover, .btn-action-delete:focus,
+.btn-action-edit:hover, .btn-action-edit:focus,
+.btn-action-predict:hover, .btn-action-predict:focus,
+.btn-icon-delete:hover, .btn-icon-delete:focus {
+    transform: translateY(-2px);
+    filter: brightness(0.92);
+}
+
+/* Specific hover color override for delete to ensure visibility */
+.btn-action-delete:hover, .btn-action-delete:focus {
+    background-color: #ff7070 !important;
+    color: #FFFFFF !important;
+}
+
+/* Match hover color behavior for icon-style delete buttons used in some lists */
+.btn-icon-delete:hover, .btn-icon-delete:focus {
+    background-color: #ff7070 !important;
+    color: #FFFFFF !important;
+}
+
+/* Ensure SVG icons inside icon-style buttons inherit color and update on hover */
+.btn-icon svg, .btn-icon-delete svg {
+    width: 24px;
+    height: 24px;
+    color: inherit;
+}
+.btn-icon svg path, .btn-icon-delete svg path,
+.btn-icon svg circle, .btn-icon-delete svg circle,
+.btn-icon svg rect, .btn-icon-delete svg rect {
+    fill: currentColor !important;
+}
+
+/* Ensure SVG icons inside action buttons inherit the button color and update on hover */
+.btn-action svg,
+.btn-action i {
+    color: inherit;
+}
+
+/* Force SVG path/fill elements to use currentColor so hover color applies reliably */
+.btn-action svg path,
+.btn-action svg circle,
+.btn-action svg rect,
+.btn-action svg polygon {
+    fill: currentColor !important;
+}
+
+/* When action buttons change color on hover, ensure the svg fills update too */
+.btn-action-delete:hover svg path,
+.btn-action-delete:focus svg path {
+    fill: currentColor !important;
+}
+.btn-action-edit:hover svg path,
+.btn-action-edit:focus svg path {
+    fill: currentColor !important;
+}
+.btn-action-predict:hover svg path,
+.btn-action-predict:focus svg path {
+    fill: currentColor !important;
+}
+
+.status-badge { display:inline-block; padding:3px 14px; border-radius:20px; font-weight:600; font-size:0.8rem; font-family:Poppins, sans-serif; text-align:center; white-space:nowrap; margin-bottom:0.5rem; }
+.status-badge-at-risk { background-color: #EF5353; color: #FFFFFF; }
+.status-badge-average { background-color: #F39E4D; color: #FFFFFF; }
+.status-badge-good { background-color: #F0EB5B; color: #FFFFFF; }
+.status-badge-excellent { background-color: #a8cc45; color: #FFFFFF; }
+
+/* Global modal-like action buttons for pages (Save / Cancel) */
+.modal-save, .btn-action.modal-save {
+    width: 120px;
+    height: 2.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #152E21;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-save:hover, .btn-action.modal-save:hover { transform: translateY(-1px); filter: brightness(0.95); }
+
+.modal-cancel, .btn-action.modal-cancel {
+    width: 120px;
+    height: 2.5rem;
+    border: 2px solid #152E21;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #152E21;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-cancel:hover, .btn-action.modal-cancel:hover { transform: translateY(-1px); filter: brightness(0.95); }
+
+/* Remove underline for anchor-style cancel buttons and keep visuals consistent */
+.modal-cancel, .modal-cancel:link, .modal-cancel:visited, .modal-cancel:active {
+    text-decoration: none !important;
+}
+
+/* Allow certain modals to request a lighter backdrop by toggling `body.light-modal-backdrop` */
+body.light-modal-backdrop .modal-backdrop.show {
+    background-color: rgba(0,0,0,0.18) !important;
+}
+
+/* Minimal responsive guard: prevent whole-page horizontal scroll while
+   allowing table area to scroll when necessary. This is intentionally
+   conservative to avoid changing column sizing on desktop. */
+body {
+    overflow-x: hidden; /* hide accidental page-level overflow */
+}
+
+.user-table-wrapper {
+    max-width: 100%;
+    overflow-x: auto; /* ensure the table area can scroll independently */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce heavy cell padding only on medium/smaller viewports so desktop columns remain roomy */
+@media (max-width: 1200px) {
+    .user-table thead th,
+    .user-table tbody td {
+        padding: 12px;
+    }
+}

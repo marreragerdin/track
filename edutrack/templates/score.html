@@ -27,38 +27,38 @@
         font-weight: 500;
     }
 
-.tab-search {
-    background: #F6F5AE;
-    display: flex;
-    padding: 20px;
-    gap: 8px;
-    align-items: center;
-}
-.tab-search input[type="text"] {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid #ccc;
-    margin: 4px;
-    font-family: Poppins, sans-serif;
-    flex: 0.4;
-}
-.search-btn {
-    background: #152E21;
-    color: #F6F5AE;
-    border: none;
-    border-radius: 999px;
-    padding: 8px 16px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: Poppins, sans-serif;
-    font-size: 0.85rem;
-    transition: background 0.2s;
-}
-.search-btn:hover {
-    background: #1a3a28;
-}
+    .tab-search {
+        background: #F6F5AE;
+        display: flex;
+        padding: 20px;
+        gap: 8px;
+        align-items: center;
+    }
+    .tab-search input[type="text"] {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #ccc;
+        margin: 4px;
+        font-family: Poppins, sans-serif;
+        flex: 0.4;
+    }
+    .search-btn {
+        background: #152E21;
+        color: #F6F5AE;
+        border: none;
+        border-radius: 999px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: Poppins, sans-serif;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+    .search-btn:hover {
+        background: #1a3a28;
+    }
 
     .user-add-btn {
         border-radius: 999px;
@@ -73,6 +73,10 @@
         gap: 6px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         cursor: pointer;
+        transition: background 0.2s ease;
+    }
+    .user-add-btn:hover {
+        background: #a8cc45;
     }
     .user-add-btn.danger {
         background: #EF5353;
@@ -81,7 +85,6 @@
     .user-add-btn.danger:hover {
         background: #d84343;
     }
-
     /* Tabs (folder-style) */
     .tabs {
         margin: 0;
@@ -156,7 +159,7 @@
 
     .user-table-wrapper {
         width: 100%;
-        overflow: hidden;
+        overflow-x: auto;
     }
 
     .user-table {
@@ -185,6 +188,10 @@
         white-space: normal;
         color: #1E1E1E;
     }
+
+    .user-data-table {
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
     .user-table tbody tr:nth-child(even) {
         background: #fbfbfb;
     }
@@ -198,49 +205,153 @@
         gap: 8px;
         justify-content: flex-start;
         flex-wrap: wrap;
+        flex-direction: column;
     }
     .btn-action {
+        width: 2.5rem;
+        height: 2.5rem;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        font-size: 0.85rem;
-        font-family: Poppins, sans-serif;
+        font-size: 1.5rem;
+        padding: 0;
+        border-width: 2px;
         border: none;
+        background: #fff;
         cursor: pointer;
-        text-decoration: none;
-        transition: background 0.2s;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action i {
+        font-size: 1.5rem;
     }
     .btn-action svg {
-        width: 16px;
-        height: 16px;
+        width: 24px;
+        height: 24px;
     }
     .btn-action-pdf {
-        background-color: #EF5353;
-        color: #FFFFFF;
+        background-color: #ff6d6d;
+        color: #620303;
     }
+
     .btn-action-pdf:hover {
-        background: #d84343;
-        color: #FFFFFF;
+        background: #d9d9d990;
+        color: #1E1E1E;
     }
+
     .btn-action-predict {
-        background-color: #9C27B0;
-        color: #FFFFFF;
+        background-color: #ffa5f1;
+        color: #7b0364;
     }
+
     .btn-action-predict:hover {
-        background: #7b1fa2;
-        color: #FFFFFF;
+        background: #d9d9d990;
+        color: #1E1E1E;
     }
+
     .btn-action-edit {
         background-color: #B2C85C;
         color: #1E1E1E;
     }
+
     .btn-action-edit:hover {
-        background: #f5fadf;
+        background: #d9d9d990;
         color: #1E1E1E;
+    }
+
+    .btn-action-delete {
+        background-color: #EF5353;
+        color: #FFFFFF;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action-delete:hover {
+        background: #ff7070;
+        color: #FFFFFF;
+    }
+
+    .user-data-table {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    /*
+
+    .user-table th:nth-child(7) {
+        position: relative;
+    }
+
+    .user-table th:nth-child(7)::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+        background: #F0EB5B;
+    }
+
+    */
+
+    .user-table th:nth-child(4),
+    .btn-edit-exam {
+        background: #B9E76B !important;
+        color: #306a00 !important;
+    }
+
+    .user-table th:nth-child(5),
+    .btn-edit-project {
+        background: #F0EB5B !important;
+        color: #635b00 !important;
+    }
+
+    .user-table th:nth-child(6),
+    .btn-edit-quiz {
+        background: #F2C454 !important;
+        color: #5b3a00 !important;
+    }
+
+    .user-table th:nth-child(7),
+    .btn-edit-attendance {
+        background: #F39E4D !important;
+        color: #6d3102 !important;
+    }
+
+    .btn-edit-exam:hover,
+    .btn-edit-project:hover ,
+    .btn-edit-quiz:hover,
+    .btn-edit-attendance:hover {
+        background: #d9d9d990 !important;
+        color: #1E1E1E !important;
+    }
+
+    /* Custom Status Badge Styles */
+    .status-badge {
+        display: inline-block;
+        padding: 3px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        font-family: Poppins, sans-serif;
+        text-align: center;
+        white-space: nowrap;
+        margin-bottom: 0.5rem;
+    }
+    .status-badge-at-risk {
+        background-color: #EF5353;
+        color: #FFFFFF;
+    }
+    .status-badge-average {
+        background-color: #F39E4D;
+        color: #FFFFFF;
+    }
+    .status-badge-good {
+        background-color: #F0EB5B;
+        color: #FFFFFF;
+    }
+    .status-badge-excellent {
+        background-color: #a8cc45;
+        color: #FFFFFF;
     }
 
     /* Pagination Styles */
@@ -281,6 +392,9 @@
             width: 100%;
             justify-content: center;
         }
+        .tabs a {
+            padding: 0.7rem 20px;
+        }
         .tab-search {
             padding: 15px;
             flex-wrap: wrap;
@@ -304,13 +418,25 @@
             font-size: 0.75rem;
         }
         .btn-action {
-            padding: 6px 10px;
+            width: auto;
+            height: auto;
+            padding: 6px 8px;
             font-size: 0.75rem;
         }
-        .btn-action svg {
-            width: 14px;
-            height: 14px;
+        .btn-action i {
+            font-size: 1.2rem;
         }
+        .btn-edit-exam,
+        .btn-edit-project,
+        .btn-edit-quiz,
+        .btn-edit-attendance {
+            width: auto;
+            height: auto;
+            padding: 10px 10px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+        }
+       
     }
 
     /* Card Styles for Mobile */
@@ -355,6 +481,16 @@
     }
 
     @media (max-width: 600px) {
+
+        .tabs a {
+            padding: 0.7rem 8.9px;
+            font-size: 0.7rem;
+        }
+
+        .user-card-value {
+            width: 60%;
+        }
+
         .user-folder-card {
             gap: 1rem;
         }
@@ -368,7 +504,6 @@
         /* Show cards on mobile */
         .user-cards-wrapper {
             display: block;
-            padding: 12px;
             background: #FFFFFF;
         }
         .pagination .page-link {
@@ -390,29 +525,26 @@
         </div>
 
         
+        <div class="tab-content">
+            <ul class="tabs group">
+                <li class="{% if tab == 'score' %}active{% endif %}">
+                    <a href="{% url 'score' %}" data-score-tab="true">Overview</a>
+                </li>
+                <li class="{% if tab == 'quiz' %}active{% endif %}">
+                    <a href="{% url 'quiz' %}" data-score-tab="true">Quiz</a>
+                </li>
+                <li class="{% if tab == 'exam' %}active{% endif %}">
+                    <a href="{% url 'exam' %}" data-score-tab="true">Exam</a>
+                </li>
+                <li class="{% if tab == 'project' %}active{% endif %}">
+                    <a href="{% url 'project' %}" data-score-tab="true">Project</a>
+                </li>
+                <li class="{% if tab == 'attendance' %}active{% endif %}">
+                    <a href="{% url 'attendance' %}" data-score-tab="true">Attendance</a>
+                </li>
+            </ul>
 
-        <div class="user-data-table">
-
-            <div class="tab-content">
-                <ul class="tabs group">
-                    <li class="{% if tab == 'score' %}active{% endif %}">
-                        <a href="{% url 'score' %}">Overview</a>
-                    </li>
-                    <li class="{% if tab == 'quiz' %}active{% endif %}">
-                        <a href="{% url 'quiz' %}">Quiz</a>
-                    </li>
-                    <li class="{% if tab == 'exam' %}active{% endif %}">
-                        <a href="{% url 'exam' %}">Exam</a>
-                    </li>
-                    <li class="{% if tab == 'project' %}active{% endif %}">
-                        <a href="{% url 'project' %}">Project</a>
-                    </li>
-                    <li class="{% if tab == 'attendance' %}active{% endif %}">
-                        <a href="{% url 'attendance' %}">Attendance</a>
-                    </li>
-                </ul>
-            </div>
-            
+            <div class="user-data-table">
             <form method="get" class="tab-search">
                 <input type="text" name="search" placeholder="Search students..." value="{{ search }}">
                 <button type="submit" class="search-btn">
@@ -422,148 +554,130 @@
 
             <div class="user-table-wrapper">
                 <table class="user-table">
-    <thead>
-        <tr>
-            <th>Student</th>
-            <th>Grade & Section</th>
-                  <th >Subject</th>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Grade & Section</th>
+                                  <th >Subject</th>
 
-             <th >Exam</th>
-        <th >Project</th>
-            <th >Quiz</th>
-        <th >Attendance</th>
-        <th >Grade</th>
-        <th >Status</th>
-        <th >Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for data in student_score_data %}
-            {% if data.subjects %}
-                {% for subject_data in data.subjects %}
-                <tr>
-                    {% if forloop.first %}
-                    <td rowspan="{{ data.subjects|length }}">{{ data.student.fullname }}</td>
-                    <td rowspan="{{ data.subjects|length }}">{{ data.student.grade_and_section }}</td>
-                    {% endif %}
-                    <td>{{ subject_data.subject.name }} ({{ subject_data.subject.code }})</td>
-                    <td>
-                        {% if subject_data.exam_average %}
-                            {{ subject_data.exam_average|floatformat:2 }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if subject_data.project_average %}
-                            {{ subject_data.project_average|floatformat:2 }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if subject_data.quiz_average %}
-                            {{ subject_data.quiz_average|floatformat:2 }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if subject_data.attendance_average %}
-                            {{ subject_data.attendance_average|floatformat:2 }}%
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if subject_data.grade %}
-                            <strong>{{ subject_data.grade|floatformat:2 }}</strong>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if subject_data.ml_prediction %}
-                            {% if subject_data.ml_prediction.predicted_category == 'At Risk' %}
-                                <span class="badge bg-danger">At Risk</span>
-                            {% elif subject_data.ml_prediction.predicted_category == 'Average' %}
-                                <span class="badge bg-warning">Average</span>
-                            {% elif subject_data.ml_prediction.predicted_category == 'Good' %}
-                                <span class="badge bg-info">Good</span>
-                            {% elif subject_data.ml_prediction.predicted_category == 'Excellent' %}
-                                <span class="badge bg-success">Excellent</span>
-                            {% endif %}
-                            <br><small class="text-muted">Predicted: {{ subject_data.ml_prediction.predicted_grade|floatformat:2 }}</small>
-                        {% else %}
-                            <span class="text-muted">Not Predicted</span>
-                        {% endif %}
-                    </td>
-                    <td class="actions-cell">
-                        <div class="action-buttons">
-                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
-                                PDF
-                            </a>
-                            <button type="button" class="btn-action btn-action-predict predict-btn" 
-                                    data-student-id="{{ data.student.id }}" 
-                                    data-subject-id="{{ subject_data.subject_id }}"
-                                    title="Predict Grade">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="m199 125.31l-49.88-18.39L130.69 57a19.92 19.92 0 0 0-37.38 0l-18.39 49.92L25 125.31a19.92 19.92 0 0 0 0 37.38l49.88 18.39L93.31 231a19.92 19.92 0 0 0 37.38 0l18.39-49.88L199 162.69a19.92 19.92 0 0 0 0-37.38m-63.38 35.16a12 12 0 0 0-7.11 7.11L112 212.28l-16.47-44.7a12 12 0 0 0-7.11-7.11L43.72 144l44.7-16.47a12 12 0 0 0 7.11-7.11L112 75.72l16.47 44.7a12 12 0 0 0 7.11 7.11l44.7 16.47ZM140 40a12 12 0 0 1 12-12h12V16a12 12 0 0 1 24 0v12h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0V52h-12a12 12 0 0 1-12-12m112 48a12 12 0 0 1-12 12h-4v4a12 12 0 0 1-24 0v-4h-4a12 12 0 0 1 0-24h4v-4a12 12 0 0 1 24 0v4h4a12 12 0 0 1 12 12"/></svg>
-                                Predict
-                            </button>
-                            {% if subject_data.quiz_average %}
-                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
-                                <i class="fas fa-edit"></i> Quiz
-                            </button>
-                            {% endif %}
-                            {% if subject_data.exam_average %}
-                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editExamModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Exam">
-                                <i class="fas fa-edit"></i> Exam
-                            </button>
-                            {% endif %}
-                            {% if subject_data.project_average %}
-                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Project">
-                                <i class="fas fa-edit"></i> Project
-                            </button>
-                            {% endif %}
-                            {% if subject_data.attendance_average %}
-                            <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
-                                <i class="fas fa-edit"></i> Attendance
-                            </button>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td>{{ data.student.fullname }}</td>
-                    <td>{{ data.student.grade_and_section }}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td class="actions-cell">
-                        <div class="action-buttons">
-                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
-                                PDF
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            {% endif %}
-        {% empty %}
-        <tr>
-            <td colspan="10" class="text-center">No students found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                             <th >Exam</th>
+                        <th >Project</th>
+                            <th >Quiz</th>
+                        <th >Attendance</th>
+                        <th >Grade</th>
+                        <th >Status</th>
+                        <th >Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in student_score_data %}
+                            {% if data.subjects %}
+                                {% for subject_data in data.subjects %}
+                                <tr>
+                                    {% if forloop.first %}
+                                    <td rowspan="{{ data.subjects|length }}">{{ data.student.fullname }}</td>
+                                    <td rowspan="{{ data.subjects|length }}">{{ data.student.grade_and_section }}</td>
+                                    {% endif %}
+                                    <td>{{ subject_data.subject.name }} ({{ subject_data.subject.code }})</td>
+                                    <td>
+                                        {% if subject_data.exam_average %}
+                                            {{ subject_data.exam_average|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.project_average %}
+                                            {{ subject_data.project_average|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.quiz_average %}
+                                            {{ subject_data.quiz_average|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.attendance_average %}
+                                            {{ subject_data.attendance_average|floatformat:2 }}%
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.grade %}
+                                            <strong>{{ subject_data.grade|floatformat:2 }}</strong>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.ml_prediction %}
+                                            {% if subject_data.ml_prediction.predicted_category == 'At Risk' %}
+                                                <span class="status-badge status-badge-at-risk">At Risk</span>
+                                            {% elif subject_data.ml_prediction.predicted_category == 'Average' %}
+                                                <span class="status-badge status-badge-average">Average</span>
+                                            {% elif subject_data.ml_prediction.predicted_category == 'Good' %}
+                                                <span class="status-badge status-badge-good">Good</span>
+                                            {% elif subject_data.ml_prediction.predicted_category == 'Excellent' %}
+                                                <span class="status-badge status-badge-excellent">Excellent</span>
+                                            {% endif %}
+                                            <br><small style="color: #152E21; font-size: 0.75rem;">Predicted: {{ subject_data.ml_prediction.predicted_grade|floatformat:2 }}</small>
+                                        {% else %}
+                                            <span style="color: #152E21;">Not Predicted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="actions-cell">
+                                        <div class="action-buttons">
+                                            <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
 
+                                            </a>
+                                            <button type="button" class="btn-action btn-action-predict predict-btn"
+                                                    data-student-id="{{ data.student.id }}"
+                                                    data-subject-id="{{ subject_data.subject_id }}"
+                                                    title="Predict Grade">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="m199 125.31l-49.88-18.39L130.69 57a19.92 19.92 0 0 0-37.38 0l-18.39 49.92L25 125.31a19.92 19.92 0 0 0 0 37.38l49.88 18.39L93.31 231a19.92 19.92 0 0 0 37.38 0l18.39-49.88L199 162.69a19.92 19.92 0 0 0 0-37.38m-63.38 35.16a12 12 0 0 0-7.11 7.11L112 212.28l-16.47-44.7a12 12 0 0 0-7.11-7.11L43.72 144l44.7-16.47a12 12 0 0 0 7.11-7.11L112 75.72l16.47 44.7a12 12 0 0 0 7.11 7.11l44.7 16.47ZM140 40a12 12 0 0 1 12-12h12V16a12 12 0 0 1 24 0v12h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0V52h-12a12 12 0 0 1-12-12m112 48a12 12 0 0 1-12 12h-4v4a12 12 0 0 1-24 0v-4h-4a12 12 0 0 1 0-24h4v-4a12 12 0 0 1 24 0v4h4a12 12 0 0 1 12 12"/></svg>
+
+                                            </button>
+                                            {% if subject_data.exam_average %}
+                                            <button type="button" class="btn-action btn-action-edit btn-edit-exam" data-bs-toggle="modal" data-bs-target="#editExamModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Exam">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if subject_data.project_average %}
+                                            <button type="button" class="btn-action btn-action-edit btn-edit-project" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Project">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if subject_data.quiz_average %}
+                                            <button type="button" class="btn-action btn-action-edit btn-edit-quiz" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            {% endif %}                 
+                                            {% if subject_data.attendance_average %}
+                                            <button type="button" class="btn-action btn-action-edit btn-edit-attendance" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ data.student.id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">No students found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        </div>
+
 
             <div class="user-cards-wrapper">
             {% if student_score_data %}
@@ -641,33 +755,33 @@
                             <div class="user-card-actions">
                                 <a href="{% url 'generate_grade_pdf' data.student.id %}" class="btn-action btn-action-pdf" title="Generate PDF">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="M200 164v8h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h32a12 12 0 0 1 0 24Zm-108 8a32 32 0 0 1-32 32h-4v4a12 12 0 0 1-24 0v-56a12 12 0 0 1 12-12h16a32 32 0 0 1 32 32m-24 0a8 8 0 0 0-8-8h-4v16h4a8 8 0 0 0 8-8m100 8a40 40 0 0 1-40 40h-16a12 12 0 0 1-12-12v-56a12 12 0 0 1 12-12h16a40 40 0 0 1 40 40m-24 0a16 16 0 0 0-16-16h-4v32h4a16 16 0 0 0 16-16M36 108V40a20 20 0 0 1 20-20h96a12 12 0 0 1 8.49 3.52l56 56A12 12 0 0 1 220 88v20a12 12 0 0 1-24 0v-4h-48a12 12 0 0 1-12-12V44H60v64a12 12 0 0 1-24 0m124-51v23h23Z"/></svg>
-                                    PDF
+                                    
                                 </a>
                                 <button type="button" class="btn-action btn-action-predict predict-btn"
                                         data-student-id="{{ subject_data.student_id }}"
                                         data-subject-id="{{ subject_data.subject_id }}"
                                         title="Predict Grade">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="currentColor" d="m199 125.31l-49.88-18.39L130.69 57a19.92 19.92 0 0 0-37.38 0l-18.39 49.92L25 125.31a19.92 19.92 0 0 0 0 37.38l49.88 18.39L93.31 231a19.92 19.92 0 0 0 37.38 0l18.39-49.88L199 162.69a19.92 19.92 0 0 0 0-37.38m-63.38 35.16a12 12 0 0 0-7.11 7.11L112 212.28l-16.47-44.7a12 12 0 0 0-7.11-7.11L43.72 144l44.7-16.47a12 12 0 0 0 7.11-7.11L112 75.72l16.47 44.7a12 12 0 0 0 7.11 7.11l44.7 16.47ZM140 40a12 12 0 0 1 12-12h12V16a12 12 0 0 1 24 0v12h12a12 12 0 0 1 0 24h-12v12a12 12 0 0 1-24 0V52h-12a12 12 0 0 1-12-12m112 48a12 12 0 0 1-12 12h-4v4a12 12 0 0 1-24 0v-4h-4a12 12 0 0 1 0-24h4v-4a12 12 0 0 1 24 0v4h4a12 12 0 0 1 12 12"/></svg>
-                                    Predict
+                                    
                                 </button>
                                 {% if subject_data.quiz_average %}
-                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
-                                    <i class="fas fa-edit"></i> Quiz
+                                <button type="button" class="btn-action btn-action-edit btn-edit-quiz" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Quiz">
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 {% endif %}
                                 {% if subject_data.exam_average %}
-                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editExamModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Exam">
-                                    <i class="fas fa-edit"></i> Exam
+                                <button type="button" class="btn-action btn-action-edit btn-edit-exam" data-bs-toggle="modal" data-bs-target="#editExamModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Exam">
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 {% endif %}
                                 {% if subject_data.project_average %}
-                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Project">
-                                    <i class="fas fa-edit"></i> Project
+                                <button type="button" class="btn-action btn-action-edit btn-edit-project" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Project">
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 {% endif %}
                                 {% if subject_data.attendance_average %}
-                                <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
-                                    <i class="fas fa-edit"></i> Attendance
+                                <button type="button" class="btn-action btn-action-edit btn-edit-attendance" data-bs-toggle="modal" data-bs-target="#editAttendanceModal{{ subject_data.student_id }}_{{ subject_data.subject_id }}" title="Edit Attendance">
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 {% endif %}
                             </div>
@@ -734,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modalElement.setAttribute('aria-hidden', 'true');
             modalElement.innerHTML = `
                 <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
+                    <div class="modal-content user-modal">
                         <div class="modal-body">
                             <div class="text-center">
                                 <div class="spinner-border" role="status">
@@ -762,6 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const modalContent = tempDiv.querySelector('.modal-content');
                     if (modalContent && modalElement) {
                         modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                        try { attachModalForm(modalElement); } catch (e) { /* ignore */ }
                     }
                 })
                 .catch(error => {
@@ -787,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalElement.setAttribute('aria-hidden', 'true');
                 modalElement.innerHTML = `
                     <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
+                        <div class="modal-content user-modal">
                             <div class="modal-body">
                                 <div class="text-center">
                                     <div class="spinner-border" role="status">
@@ -841,11 +956,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const modalContent = fullModal.querySelector('.modal-content');
                                 if (modalContent && modalElement) {
                                     modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                    try { attachModalForm(modalElement); } catch (e) { /* ignore */ }
                                 }
                             } else {
                                 const modalContent = tempDiv.querySelector('.modal-content');
                                 if (modalContent && modalElement) {
                                     modalElement.querySelector('.modal-content').innerHTML = modalContent.innerHTML;
+                                    try { attachModalForm(modalElement); } catch (e) { /* ignore */ }
                                 }
                             }
                             // Show modal using Bootstrap API after content is loaded
@@ -913,6 +1030,160 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.innerHTML = originalHTML;
             });
         });
+    });
+});
+</script>
+<script>
+// Modal AJAX helpers: keep modal open and inject returned HTML/messages immediately
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function runInlineScripts(container) {
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+        try {
+            const newScript = document.createElement('script');
+            if (oldScript.src) {
+                newScript.src = oldScript.src;
+                newScript.async = false;
+                document.head.appendChild(newScript);
+            } else {
+                newScript.text = oldScript.textContent;
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript);
+            }
+        } catch (e) { console.error('Error running inline script', e); }
+    });
+}
+
+function attachModalForm(modalElement) {
+    if (!modalElement) return;
+    const form = modalElement.querySelector('form[data-modal-form="true"]') || modalElement.querySelector('form');
+    if (!form) return;
+    if (form._ajaxAttached) return; form._ajaxAttached = true;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+        const url = form.getAttribute('action') || window.location.href;
+        const method = (form.getAttribute('method') || 'POST').toUpperCase();
+        const formData = new FormData(form);
+        const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+        const csrftoken = getCookie('csrftoken'); if (csrftoken) headers['X-CSRFToken'] = csrftoken;
+
+        fetch(url, { method: method, headers: headers, body: formData })
+        .then(response => {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) return response.json();
+            return response.text().then(html => ({ html }));
+        })
+        .then(result => {
+            if (submitBtn) submitBtn.disabled = false;
+            if (result && result.html) {
+                const target = modalElement.querySelector('.modal-content');
+                if (target) {
+                    target.innerHTML = result.html;
+                    runInlineScripts(target);
+                    const newForm = modalElement.querySelector('form'); if (newForm) newForm._ajaxAttached = false;
+                    attachModalForm(modalElement);
+                }
+                return;
+            }
+            const data = result;
+            if (data && data.success === true) {
+                try { const bsModal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement); bsModal.hide(); } catch(e){}
+                setTimeout(() => { document.querySelectorAll('.modal-backdrop').forEach(b=>b.remove()); window.location.reload(); }, 200);
+            } else {
+                const msg = data?.message || 'Save failed. Please check your form and try again.';
+                // Try to show message as field-level error under the subject input
+                const formEl = modalElement.querySelector('form');
+                // remove any top alerts
+                const body = modalElement.querySelector('.modal-body');
+                if (body) body.querySelectorAll('.alert').forEach(a=>a.remove());
+
+                if (formEl) {
+                    // clear previous field error
+                    const prev = formEl.querySelector('#subject-error');
+                    if (prev) {
+                        prev.innerText = msg;
+                        prev.style.display = '';
+                    } else {
+                        // try to find the subject input and append a small error label
+                        const subj = formEl.querySelector('[name="subject"]');
+                        if (subj) {
+                            const wrapper = subj.closest('.mb-3') || subj.parentElement;
+                            let errorEl = wrapper.querySelector('.field-error');
+                            if (!errorEl) {
+                                errorEl = document.createElement('div');
+                                errorEl.className = 'form-text text-danger field-error';
+                                wrapper.appendChild(errorEl);
+                            }
+                            errorEl.innerText = msg;
+                            errorEl.style.display = '';
+                        } else {
+                            // fallback to alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-danger';
+                            alertDiv.innerText = msg;
+                            if (body) body.insertBefore(alertDiv, body.firstChild);
+                        }
+                    }
+                } else {
+                    if (body) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger';
+                        alertDiv.innerText = msg;
+                        body.insertBefore(alertDiv, body.firstChild);
+                    } else {
+                        alert(msg);
+                    }
+                }
+            }
+        })
+        .catch(err => { if (submitBtn) submitBtn.disabled = false; console.error('Error submitting modal form', err); alert('Error saving. See console.'); });
+    });
+
+    // Field-level live validation: check subject assignment when user changes subject select
+    try {
+        const subjectField = form.querySelector('[name="subject"]');
+        if (subjectField) {
+            subjectField.addEventListener('change', function() {
+                const subjectId = this.value;
+                if (!subjectId) {
+                    const prev = form.querySelector('#subject-error'); if (prev) { prev.style.display='none'; prev.innerText=''; }
+                    return;
+                }
+                fetch(`/api/subject-assigned/?subject_id=${encodeURIComponent(subjectId)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    const errEl = form.querySelector('#subject-error') || form.querySelector('.field-error');
+                    if (data && data.assigned === false) {
+                        if (errEl) { errEl.innerText = 'subject is currently not assigned'; errEl.style.display = ''; }
+                    } else {
+                        if (errEl) { errEl.innerText = ''; errEl.style.display = 'none'; }
+                    }
+                })
+                .catch(err => console.error('Error checking subject assignment', err));
+            });
+        }
+    } catch(e) { /* ignore */ }
+
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        try { const f = modalElement.querySelector('form'); if (f) f.reset(); } catch(e){}
+        setTimeout(()=>{ if (!document.querySelector('.modal.show')) document.querySelectorAll('.modal-backdrop').forEach(b=>b.remove()); }, 100);
+    });
+}
+
+// Attach to any existing modal elements on the page so static modals get AJAX handling
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.modal').forEach(function(m) {
+        try { attachModalForm(m); } catch(e) { /* ignore */ }
     });
 });
 </script>

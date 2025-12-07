@@ -72,6 +72,29 @@ h2 {
     width: 60px;
 }
 
+/* When the sidebar is collapsed, hide link text and dropdown carets so only icons show */
+
+/* Strongly hide link text and dropdown carets when collapsed (use !important to override other rules) */
+#sidebar.close a span,
+#sidebar.close .dropdown-btn span {
+    display: none !important;
+}
+
+/* Hide the dropdown caret (last svg) in collapsed state to avoid showing submenu indicator */
+#sidebar.close .dropdown-btn > svg:last-child {
+    display: none !important;
+}
+
+/* Center the remaining icon when collapsed */
+#sidebar.close .dropdown-btn {
+    justify-content: center !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+#sidebar.close a, #sidebar.close .dropdown-btn {
+    gap: 0 !important;
+}
+
 #sidebar svg {
     flex-shrink: 0;
     fill: var(--sidebar-text);

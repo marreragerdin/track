@@ -33,7 +33,6 @@
     padding: 20px;
     gap: 8px;
     align-items: center;
-    margin-top: 1rem;
 }
 
 .tab-search input[type="text"] {
@@ -82,6 +81,9 @@
         overflow: hidden;
     }
 
+    .user-data-table {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
     .user-table {
         width: 100%;
         border-collapse: collapse;
@@ -129,7 +131,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         padding: 0;
         border: none;
         background: #fff;
@@ -146,9 +148,11 @@
     .btn-icon-delete {
         background-color: #EF5353;
         color: #1E1E1E;
+
     }
     .btn-icon-delete:hover {
         background: #ffe5e1;
+        color: #1E1E1E !important;
     }
 
     /* Pagination Styles */
@@ -211,17 +215,13 @@
         .user-table tbody td {
             font-size: 0.75rem;
         }
-        .btn-icon {
-            width: 2rem;
-            height: 2rem;
-            font-size: 1rem;
-        }
     }
 
     /* Card Styles for Mobile */
     .user-cards-wrapper {
         display: none;
     }
+
     .user-card {
         background: #FFFFFF;
         border-radius: 8px;
@@ -389,7 +389,7 @@
 <!-- Assign Subject Modal - will be loaded dynamically -->
 <div class="modal fade" id="assignSubjectModal" tabindex="-1" aria-labelledby="assignSubjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-body">
                 <div class="text-center">
                     <div class="spinner-border" role="status">

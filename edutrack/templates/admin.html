@@ -1,118 +1,184 @@
-{% extends 'base.html' %}
+    {% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
+<style>
 
-<!-- User Count Cards -->
-<div class="row mt-3">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-user-shield"></i> Admin Users</h5>
-                <h2 class="card-text">{{ total_admins }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-chalkboard-teacher"></i> Faculty</h5>
-                <h2 class="card-text">{{ total_faculty }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-user-graduate"></i> Students</h5>
-                <h2 class="card-text">{{ total_students }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-book"></i> Student Records</h5>
-                <h2 class="card-text">{{ total_student_records }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+    .admin-heading {
+        color: #152E21;
+        font-weight: 500;
+        font-size: 1.75rem;
+        font-family: Inter, sans-serif;
+        margin-bottom: 1rem;
+    }
 
-<!-- Grade Distribution Cards -->
-<div class="row mt-3">
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Excellent (90+)</h5>
-                <h2 class="card-text">{{ excellent_count }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Good (80-89)</h5>
-                <h2 class="card-text">{{ good_count }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Average (70-79)</h5>
-                <h2 class="card-text">{{ average_count }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-body">
-                <h5 class="card-title">At Risk (<70)</h5>
-                <h2 class="card-text">{{ at_risk_count }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
 
-<!-- Charts -->
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Grade Distribution</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted small mb-3">Distribution of students by performance category based on their overall grades.</p>
-                <canvas id="gradeChart" style="max-height: 250px;"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> User Distribution</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted small mb-3">Breakdown of user accounts by role (Admin, Faculty, Students).</p>
-                <canvas id="userChart" style="max-height: 250px;"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
+    .stat-card {
+        background-color: #F6F5AE;
+        color: #152E21;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
 
-<div class="mt-3">
-    <a href="{% url 'manage_user' %}" class="btn btn-primary">Manage Users</a>
-    <a href="{% url 'academic_setup' %}" class="btn btn-secondary">Academic Setup</a>
-    <a href="{% url 'score' %}" class="btn btn-info">View Scores</a>
+    .stat-card .stat-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-weight: 600;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        align-items: start;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .chart-card .chart-header {
+        background-color: #F6F5AE;
+        color: #152E21;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-card .chart-body {
+        padding: 1rem;
+        background: #ffffff;
+    }
+
+    .action-links {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-links a {
+        padding: 0.5rem 0.75rem;
+        background: #b4d96b;
+        color: #152E21;
+        border-radius: 999px;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 800px) {
+        .charts-row { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="dashboard-container">
+        
+    <h1 class="admin-heading">Admin Dashboard</h1>
+
+    <div class="dashboard-statistics">        
+        <!-- User Count Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title"><i class="fas fa-user-shield"></i><span>Admin Users</span></div>
+                <div class="stat-value">{{ total_admins }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><i class="fas fa-chalkboard-teacher"></i><span>Faculty</span></div>
+                <div class="stat-value">{{ total_faculty }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><i class="fas fa-user-graduate"></i><span>Students</span></div>
+                <div class="stat-value">{{ total_students }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><i class="fas fa-book"></i><span>Student Records</span></div>
+                <div class="stat-value">{{ total_student_records }}</div>
+            </div>
+        </div>
+
+        <!-- Grade Distribution Cards -->
+        <div class="stats-grid" style="margin-top:1rem;">
+            <div class="stat-card">
+                <div class="stat-title"><span>Excellent (90+)</span></div>
+                <div class="stat-value">{{ excellent_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><span>Good (80-89)</span></div>
+                <div class="stat-value">{{ good_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><span>Average (70-79)</span></div>
+                <div class="stat-value">{{ average_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title"><span>At Risk (&lt;70)</span></div>
+                <div class="stat-value">{{ at_risk_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+        <div class="chart-card">
+            <div class="chart-header"><i class="fas fa-chart-bar"></i><span>Grade Distribution</span></div>
+            <div class="chart-body">
+                <p class="text-muted small" style="margin-bottom:.75rem;color:#6b6b6b;">Distribution of students by performance category based on their overall grades.</p>
+                <canvas id="gradeChart" style="max-height: 250px; width:100%;"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-header"><i class="fas fa-chart-pie"></i><span>User Distribution</span></div>
+            <div class="chart-body">
+                <p class="text-muted small" style="margin-bottom:.75rem;color:#6b6b6b;">Breakdown of user accounts by role (Admin, Faculty, Students).</p>
+                <canvas id="userChart" style="max-height: 250px; width:100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-links">
+        <a href="{% url 'manage_user' %}">Manage Users</a>
+        <a href="{% url 'academic_setup' %}">Academic Setup</a>
+        <a href="{% url 'score' %}">View Scores</a>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Grade Distribution Chart
+    // ================================
+    // Grade Distribution Chart (Bar)
+    // ================================
     const gradeCtx = document.getElementById('gradeChart').getContext('2d');
     const gradeChart = new Chart(gradeCtx, {
         type: 'bar',
@@ -122,45 +188,46 @@
                 label: 'Number of Students',
                 data: [{{ excellent_count }}, {{ good_count }}, {{ average_count }}, {{ at_risk_count }}],
                 backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(23, 162, 184, 0.8)',
-                    'rgba(255, 193, 7, 0.8)',
-                    'rgba(220, 53, 69, 0.8)'
+                    'rgba(178, 200, 92, 0.8)',  // Excellent = Lime Green
+                    'rgba(246, 245, 174, 0.8)', // Good = Light Yellow
+                    'rgba(39, 79, 46, 0.8)',    // Average = Dark Green
+                    'rgba(239, 83, 83, 0.8)'    // At Risk = Red
                 ],
                 borderColor: [
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(23, 162, 184, 1)',
-                    'rgba(255, 193, 7, 1)',
-                    'rgba(220, 53, 69, 1)'
+                    'rgba(178, 200, 92, 1)',
+                    'rgba(246, 245, 174, 1)',
+                    'rgba(39, 79, 46, 1)',
+                    'rgba(239, 83, 83, 1)'
                 ],
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            },
             maintainAspectRatio: true,
             aspectRatio: 2,
             plugins: {
                 legend: {
                     display: true,
                     position: 'top'
-                },
-                tooltip: {
-                    enabled: true
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+                    ticks: { stepSize: 1 }
                 }
             }
         }
     });
 
-    // User Distribution Chart
+    // ================================
+    // User Distribution Chart (Doughnut)
+    // ================================
     const userCtx = document.getElementById('userChart').getContext('2d');
     const userChart = new Chart(userCtx, {
         type: 'doughnut',
@@ -169,20 +236,24 @@
             datasets: [{
                 data: [{{ total_admins }}, {{ total_faculty }}, {{ total_students }}],
                 backgroundColor: [
-                    'rgba(0, 123, 255, 0.8)',
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(23, 162, 184, 0.8)'
+                    'rgba(178, 200, 92, 0.8)',  // Admins = Lime Green
+                    'rgba(246, 245, 174, 0.8)', // Faculty = Light Yellow
+                    'rgba(21, 46, 33, 0.8)'     // Students = Deep Green
                 ],
                 borderColor: [
-                    'rgba(0, 123, 255, 1)',
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(23, 162, 184, 1)'
+                    'rgba(178, 200, 92, 1)',
+                    'rgba(246, 245, 174, 1)',
+                    'rgba(21, 46, 33, 1)'
                 ],
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            animation: {
+                duration: 1400,
+                easing: 'easeOutBounce'
+            },
             maintainAspectRatio: true,
             aspectRatio: 2,
             plugins: {
@@ -194,12 +265,7 @@
                     enabled: true,
                     callbacks: {
                         label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += context.parsed + ' users';
-                            return label;
+                            return `${context.label}: ${context.parsed} users`;
                         }
                     }
                 }
@@ -207,4 +273,7 @@
         }
     });
 </script>
+
+
+
 {% endblock %}

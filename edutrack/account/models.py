@@ -86,7 +86,7 @@ class Section(models.Model):
         ('Grade 10','Grade 10')
     ])
     name = models.CharField(max_length=10)
-    adviser = models.CharField(max_length=100)
+    adviser = models.CharField(max_length=100, null=True, blank=True)
     number_of_students = models.IntegerField()
     status = models.CharField(max_length=10, choices=[('Active','Active'),('Inactive','Inactive')])
 

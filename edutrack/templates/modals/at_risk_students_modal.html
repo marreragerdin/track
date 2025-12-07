@@ -1,6 +1,6 @@
 <div class="modal fade" id="atRiskStudentsModal" tabindex="-1" aria-labelledby="atRiskStudentsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-header">
                 <h5 class="modal-title" id="atRiskStudentsModalLabel">At-Risk Students</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -33,7 +33,7 @@
                                 <td>{% if item.avg_exam %}{{ item.avg_exam|floatformat:2 }}{% else %}-{% endif %}</td>
                                 <td>{% if item.avg_project %}{{ item.avg_project|floatformat:2 }}{% else %}-{% endif %}</td>
                                 <td>{% if item.avg_attendance %}{{ item.avg_attendance|floatformat:2 }}%{% else %}-{% endif %}</td>
-                                <td><span class="badge bg-danger">{{ item.performance_category }}</span></td>
+                                <td><span class="badge bg-danger status-capsule">{{ item.performance_category }}</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -45,9 +45,7 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+            <!--<footer removed: single Close button is redundant as per request>-->
         </div>
     </div>
 </div>

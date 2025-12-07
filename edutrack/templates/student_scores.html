@@ -2,6 +2,35 @@
 {% block title %}My Scores{% endblock %}
 
 {% block content %}
+<style>
+    /* Custom Status Badge Styles */
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        font-family: Poppins, sans-serif;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .status-badge-at-risk {
+        background-color: #EF5353;
+        color: #FFFFFF;
+    }
+    .status-badge-average {
+        background-color: #F2C454;
+        color: #1E1E1E;
+    }
+    .status-badge-good {
+        background-color: #B9E76B;
+        color: #1E1E1E;
+    }
+    .status-badge-excellent {
+        background-color: #F39E4D;
+        color: #FFFFFF;
+    }
+</style>
 <div class="container mt-4">
   <h1>My Scores</h1>
   <a href="{% url 'student_dashboard' %}" class="btn btn-secondary mb-3">Back to Dashboard</a>
@@ -67,13 +96,13 @@
               {% if subject_data.performance_category %}
                 <br>
                 {% if subject_data.performance_category == 'At Risk' %}
-                  <span class="badge bg-danger">At Risk</span>
+                  <span class="status-badge status-badge-at-risk">At Risk</span>
                 {% elif subject_data.performance_category == 'Average' %}
-                  <span class="badge bg-warning">Average</span>
+                  <span class="status-badge status-badge-average">Average</span>
                 {% elif subject_data.performance_category == 'Good' %}
-                  <span class="badge bg-info">Good</span>
+                  <span class="status-badge status-badge-good">Good</span>
                 {% elif subject_data.performance_category == 'Excellent' %}
-                  <span class="badge bg-success">Excellent</span>
+                  <span class="status-badge status-badge-excellent">Excellent</span>
                 {% endif %}
               {% endif %}
             {% else %}
@@ -83,13 +112,13 @@
           <td>
             {% if subject_data.performance_category %}
               {% if subject_data.performance_category == 'At Risk' %}
-                <span class="badge bg-danger">At Risk</span>
+                <span class="status-badge status-badge-at-risk">At Risk</span>
               {% elif subject_data.performance_category == 'Average' %}
-                <span class="badge bg-warning">Average</span>
+                <span class="status-badge status-badge-average">Average</span>
               {% elif subject_data.performance_category == 'Good' %}
-                <span class="badge bg-info">Good</span>
+                <span class="status-badge status-badge-good">Good</span>
               {% elif subject_data.performance_category == 'Excellent' %}
-                <span class="badge bg-success">Excellent</span>
+                <span class="status-badge status-badge-excellent">Excellent</span>
               {% endif %}
             {% else %}
               <span class="text-muted">-</span>

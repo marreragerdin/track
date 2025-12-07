@@ -11,17 +11,33 @@ function applyStoredSidebarState() {
     if (collapsed) {
         sidebar.classList.add("close");
         toggleButton.classList.add("rotate");
+        closeAllSubMenus();
     } else {
         sidebar.classList.remove("close");
         toggleButton.classList.remove("rotate");
     }
 }
 
+
 function toggleSidebar() {
     if (!sidebar || !toggleButton) return;
+    // Toggle collapsed state
     sidebar.classList.toggle("close");
     toggleButton.classList.toggle("rotate");
-    closeAllSubMenus();
+
+    // If now collapsed, ensure all submenus are closed so no text is visible
+    if (sidebar.classList.contains("close")) {
+        closeAllSubMenus();
+    } else {
+        // If expanded and a manage-related page is active (server marks li.dropdown-open), open its submenu
+        const dropdownOpenLi = sidebar.querySelector('li.dropdown-open');
+        if (dropdownOpenLi) {
+            const btn = dropdownOpenLi.querySelector('.dropdown-btn');
+            const submenu = dropdownOpenLi.querySelector('.sub-menu');
+            if (submenu) submenu.classList.add('show');
+            if (btn) btn.classList.add('rotate');
+        }
+    }
     localStorage.setItem(
         SIDEBAR_STATE_KEY,
         sidebar.classList.contains("close") ? "1" : "0"
@@ -69,6 +85,25 @@ function closeAllSubMenus() {
         }
     });
 }
+
+// Expand sidebar when clicking a regular link while collapsed
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('#sidebar a:not(.dropdown-btn)');
+    if (!link || !sidebar || !sidebar.classList.contains('close')) return;
+    
+    // Sidebar is collapsed and a regular link was clicked - expand it without navigating yet
+    e.preventDefault();
+    sidebar.classList.remove('close');
+    if (toggleButton) {
+        toggleButton.classList.remove('rotate');
+    }
+    localStorage.setItem(SIDEBAR_STATE_KEY, "0");
+    
+    // Navigate after animation completes (300ms for CSS transition)
+    setTimeout(() => {
+        window.location.href = link.href;
+    }, 300);
+});
 
 // Mobile hamburger and overlay
 const hamburgerBtn = document.createElement("button");

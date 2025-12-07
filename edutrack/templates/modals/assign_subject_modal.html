@@ -1,6 +1,6 @@
 <div class="modal fade" id="assignSubjectModal" tabindex="-1" aria-labelledby="assignSubjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content user-modal">
             <div class="modal-header">
                 <h5 class="modal-title" id="assignSubjectModalLabel">Assign Subject</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -12,8 +12,8 @@
                         <label for="gradeLevel" class="form-label">Grade Level</label>
                         <select id="gradeLevel" name="grade_level" class="form-select" required>
                             <option value="">Select Grade Level</option>
-                            {% for grade in grades %}
-                                <option value="{{ grade }}">{{ grade }}</option>
+                            {% for g in grades %}
+                                <option value="{{ g }}">{{ g }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -22,7 +22,7 @@
                         <select id="subject" name="subject" class="form-select" required>
                             <option value="">Select Subject</option>
                             {% for subject in subjects %}
-                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                <option value="{{ subject.id }}" data-grade="{{ subject.grade_level }}">{{ subject.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -37,8 +37,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Assign</button>
+                    <button type="submit" class="btn-action btn-action-predict modal-save">Save</button>
                 </div>
             </form>
         </div>

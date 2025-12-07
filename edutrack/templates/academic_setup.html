@@ -169,7 +169,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         padding: 0;
         border: none;
         background: #fff;
@@ -189,6 +189,7 @@
     }
     .btn-icon-delete:hover {
         background: #ffe5e1;
+        color: #1E1E1E !important;
     }
 
     /* Pagination Styles */
@@ -263,11 +264,6 @@
         .user-table thead th,
         .user-table tbody td {
             font-size: 0.75rem;
-        }
-        .btn-icon {
-            width: 2rem;
-            height: 2rem;
-            font-size: 1rem;
         }
 
         /* Make search responsive like Manage Users */
@@ -645,7 +641,17 @@
                                         <tr>
                                             <td>{{ obj.grade }}</td>
                                             <td>{{ obj.name }}</td>
-                                            <td>{{ obj.adviser }}</td>
+                                            <td>
+                                                {% if obj.adviser %}
+                                                    {% for faculty in faculties %}
+                                                        {% if faculty.user.id|stringformat:"s" == obj.adviser|stringformat:"s" %}
+                                                            {{ faculty.user.first_name }} {{ faculty.user.last_name }}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
                                             <td>{{ obj.number_of_students }}</td>
                                             <td>{{ obj.status }}</td>
                                             <td class="actions-cell">
@@ -689,7 +695,7 @@
                                     </div>
                                     <div class="user-card-row">
                                         <span class="user-card-label">Adviser</span>
-                                        <span class="user-card-value">{{ obj.adviser }}</span>
+                                        <span class="user-card-value">{% if obj.adviser %}{{ obj.adviser.first_name }} {{ obj.adviser.last_name }}{% else %}--{% endif %}</span>
                                     </div>
                                     <div class="user-card-row">
                                         <span class="user-card-label">No. Students</span>
