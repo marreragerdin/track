@@ -4,17 +4,17 @@
 
 To use all features of the EduTrack system, you need to install the following packages:
 
-### 1. Core Django (Already Installed)
-- Django
-- Other core dependencies
-
-### 2. PDF Generation (Optional but Recommended)
+### 1. Core Django 
+```bash
+pip install django
+```
+### 2. PDF Generation 
 ```bash
 pip install reportlab
 ```
 **Required for:** Generating PDF grade reports
 
-### 3. Machine Learning Features (Optional but Recommended)
+### 3. Machine Learning Features 
 ```bash
 pip install numpy scikit-learn
 ```
@@ -33,18 +33,20 @@ Or use the requirements file:
 pip install -r requirements_ml.txt
 ```
 
-## What Happens If Packages Are Not Installed?
-
-- **PDF Generation**: The system will show an error message when trying to generate PDFs, directing users to install reportlab.
-- **ML Features**: The system will show an error message when trying to use ML predictions, directing users to install numpy and scikit-learn.
-- **Core Features**: All other features (score entry, student records, etc.) work without these packages.
-
 ## Verification
 
 After installation, you can verify by running:
 ```bash
 python manage.py check
 ```
-
+## To run the system
+**Change directory to edutrack** 
+```bash
+cd edutrack
+```
+**Run the server** 
+```bash
+python manage.py runserver
+```
 The system should start without errors. ML and PDF features will be available once the packages are installed.
 
